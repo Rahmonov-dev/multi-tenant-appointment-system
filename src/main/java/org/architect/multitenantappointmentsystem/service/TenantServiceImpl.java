@@ -41,11 +41,10 @@ public class TenantServiceImpl implements TenantService {
             throw new BadRequestException("Sizda allaqachon organizatsya bor faqat 1 marta yaratsh mumkin: ");
         }
 
-        // Unique slug yaratish (collision detection bilan)
         String slug = generateUniqueSlug(request.organizationName());
 
         Tenant tenant = new Tenant();
-        tenant.setSlug(slug); // Slug'ni service layer o'rnatadi
+        tenant.setSlug(slug);
         tenant.setBusinessType(request.businessType());
         tenant.setOrganizationName(request.organizationName());
         tenant.setEmail(request.email());
@@ -78,11 +77,6 @@ public class TenantServiceImpl implements TenantService {
 
     }
 
-    /**
-     * Unique slug yaratish
-     * Agar slug band bo'lsa, raqam qo'shadi (my-company, my-company-2,
-     * my-company-3, ...)
-     */
     private String generateUniqueSlug(String organizationName) {
         String baseSlug = Tenant.generateBaseSlug(organizationName);
 

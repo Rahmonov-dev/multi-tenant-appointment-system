@@ -30,32 +30,32 @@ public interface StaffService {
     /**
      * Staff ma'lumotlarini olish (ID bo'yicha)
      */
-    StaffResponse getStaffById(Long id);
+    StaffResponse getStaffById(java.util.UUID id);
 
     /**
      * Staff batafsil ma'lumotlarini olish (schedules va services bilan)
      */
-    StaffDetailResponse getStaffDetailById(Long id);
+    StaffDetailResponse getStaffDetailById(java.util.UUID id);
 
     /**
      * Staff ma'lumotlarini yangilash
      */
-    StaffResponse updateStaff(Long id, UpdateStaffRequest request);
+    StaffResponse updateStaff(java.util.UUID id, UpdateStaffRequest request);
 
     /**
      * Staff o'chirish (soft delete)
      */
-    void deleteStaff(Long id);
+    void deleteStaff(java.util.UUID id);
 
     /**
      * Staff aktivlashtirish
      */
-    StaffResponse activateStaff(Long id);
+    StaffResponse activateStaff(java.util.UUID id);
 
     /**
      * Staff deaktivlashtirish
      */
-    StaffResponse deactivateStaff(Long id);
+    StaffResponse deactivateStaff(java.util.UUID id);
 
     // ==================== STAFF QUERIES ====================
 
@@ -77,7 +77,7 @@ public interface StaffService {
     /**
      * Employement bo'yicha stafflarni olish
      */
-    List<StaffResponse> getStaffByService(Long serviceId);
+    List<StaffResponse> getStaffByService(java.util.UUID serviceId);
 
     /**
      * Tenant bo'yicha stafflarni pagination bilan olish
@@ -89,27 +89,27 @@ public interface StaffService {
     /**
      * Staff schedule yaratish yoki yangilash
      */
-    StaffScheduleResponse createOrUpdateSchedule(Long staffId, CreateStaffScheduleRequest request);
+    StaffScheduleResponse createOrUpdateSchedule(java.util.UUID staffId, CreateStaffScheduleRequest request);
 
     /**
      * Staff barcha schedules ni olish
      */
-    List<StaffScheduleResponse> getStaffSchedules(Long staffId);
+    List<StaffScheduleResponse> getStaffSchedules(java.util.UUID staffId);
 
     /**
      * Staff bitta kunning schedule ni olish
      */
-    StaffScheduleResponse getStaffScheduleByDay(Long staffId, Integer dayOfWeek);
+    StaffScheduleResponse getStaffScheduleByDay(java.util.UUID staffId, Integer dayOfWeek);
 
     /**
      * Staff schedule yangilash
      */
-    StaffScheduleResponse updateSchedule(Long staffId, Integer dayOfWeek, UpdateStaffScheduleRequest request);
+    StaffScheduleResponse updateSchedule(java.util.UUID staffId, Integer dayOfWeek, UpdateStaffScheduleRequest request);
 
     /**
      * Staff schedule o'chirish (isAvailable = false qilish)
      */
-    void deleteSchedule(Long staffId, Integer dayOfWeek);
+    void deleteSchedule(java.util.UUID staffId, Integer dayOfWeek);
 
     /**
      * Tenant bo'yicha barcha staff schedules ni olish
@@ -121,17 +121,17 @@ public interface StaffService {
     /**
      * Staff ga service biriktirish
      */
-    StaffResponse assignServiceToStaff(Long staffId, Long serviceId);
+    StaffResponse assignServiceToStaff(java.util.UUID staffId, java.util.UUID serviceId);
 
     /**
      * Staff dan service olib tashlash
      */
-    StaffResponse removeServiceFromStaff(Long staffId, Long serviceId);
+    StaffResponse removeServiceFromStaff(java.util.UUID staffId, java.util.UUID serviceId);
 
     /**
      * Staff ga bir nechta service biriktirish
      */
-    StaffResponse assignServicesToStaff(Long staffId, List<Long> serviceIds);
+    StaffResponse assignServicesToStaff(java.util.UUID staffId, List<java.util.UUID> serviceIds);
 
     // ==================== STATISTICS ====================
 

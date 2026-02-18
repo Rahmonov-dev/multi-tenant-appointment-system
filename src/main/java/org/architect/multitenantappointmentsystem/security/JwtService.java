@@ -27,7 +27,7 @@ public class JwtService {
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
-    public String generateToken(String email, Long userId) {
+    public String generateToken(String email, java.util.UUID userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
@@ -47,13 +47,14 @@ public class JwtService {
                 .getPayload()
                 .getSubject();
     }
-    public Long getUserIdFromToken(String token) {
-        return Jwts.parser()
+    public java.util.UUID getUserIdFromToken(String token) {
+        String userIdStr = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("userId", Long.class);
+                .get("userId", String.class);
+        return java.util.UUID.fromString(userIdStr);
     }
 
     public boolean validateToken(String token) {

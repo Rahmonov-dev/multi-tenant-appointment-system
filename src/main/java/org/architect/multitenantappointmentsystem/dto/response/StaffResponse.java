@@ -6,10 +6,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record StaffResponse(
-        Long id,
+        java.util.UUID id,
         Long tenantId,
         String tenantName,
-        Long userId,
+        java.util.UUID userId,
         String userFullName,
         String role,
         String displayName,

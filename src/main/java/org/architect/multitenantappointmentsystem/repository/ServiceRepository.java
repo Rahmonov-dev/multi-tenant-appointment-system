@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ServiceRepository extends JpaRepository<Employement, Long> {
+public interface ServiceRepository extends JpaRepository<Employement, java.util.UUID> {
 
     boolean existsByNameAndTenantId(String name, Long tenantId);
-    boolean existsByNameAndTenantIdAndIdNot(String name, Long tenantId, Long id);
+    boolean existsByNameAndTenantIdAndIdNot(String name, Long tenantId, java.util.UUID id);
 
     List<Employement> findByTenantId(Long tenantId);
     List<Employement> findByTenantIdAndIsActive(Long tenantId, Boolean isActive);
@@ -31,7 +31,7 @@ public interface ServiceRepository extends JpaRepository<Employement, Long> {
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND s.duration <= :maxDuration")
     List<Employement> findByMaxDuration(@Param("tenantId") Long tenantId, @Param("maxDuration") Integer maxDuration);
 
-    List<Employement> findActiveServicesByStaffId(Long staffId);
+    List<Employement> findActiveServicesByStaffId(java.util.UUID staffId);
 
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND " +
            "(LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -43,7 +43,7 @@ public interface ServiceRepository extends JpaRepository<Employement, Long> {
            "LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Employement> searchActiveByKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 
-    @Query(value = "SELECT s.* FROM services s " +
+    @Query(value = "SELECT s.* FROM employements s " +
            "INNER JOIN appointments a ON s.id = a.service_id " +
            "WHERE s.tenant_id = :tenantId " +
            "GROUP BY s.id " +
@@ -51,6 +51,6 @@ public interface ServiceRepository extends JpaRepository<Employement, Long> {
            "LIMIT :limit", nativeQuery = true)
     List<Employement> findPopularServices(@Param("tenantId") Long tenantId, Pageable pageable);
 
-    List<Employement> findByIdInAndTenantId(List<Long> ids, Long tenantId);
-    Optional<Employement> findByIdAndTenantId(Long id, Long tenantId);
+    List<Employement> findByIdInAndTenantId(List<java.util.UUID> ids, Long tenantId);
+    Optional<Employement> findByIdAndTenantId(java.util.UUID id, Long tenantId);
 }

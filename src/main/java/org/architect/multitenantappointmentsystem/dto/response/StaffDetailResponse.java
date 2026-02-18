@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record StaffDetailResponse(
-        Long id,
+        java.util.UUID id,
         String displayName,
         String position,
         StaffRole role,
         Boolean isActive,
 
         // user info
-        Long userId,
+        java.util.UUID userId,
         String fullName,
         String email,
         String phone,

@@ -17,10 +17,10 @@ public class CurrentStaffService {
     private final StaffRepository staffRepository;
 
     public Staff getCurrentStaff() {
-        Long currentUserId = AuthService.getCurrentUserId();
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
         Long tenantId = TenantContext.getTenantId();
 
-        return (Staff) staffRepository
+        return staffRepository
                 .findByTenantIdAndUserId(tenantId, currentUserId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
     }

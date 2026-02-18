@@ -55,7 +55,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .distinct()
                 .toList();
 
-        List<Long> staffIds = staffRoles.stream()
+        List<java.util.UUID> staffIds = staffRoles.stream()
                 .map(Staff::getId)
                 .toList();
 
@@ -78,7 +78,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public UserDetails loadUserByIdForJwt(Long userId, String email) {
+    public UserDetails loadUserByIdForJwt(java.util.UUID userId, String email) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User topilmadi: " + userId));
 
@@ -103,7 +103,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .distinct()
                 .toList();
 
-        List<Long> staffIds = staffRoles.stream()
+        List<java.util.UUID> staffIds = staffRoles.stream()
                 .map(Staff::getId)
                 .toList();
 

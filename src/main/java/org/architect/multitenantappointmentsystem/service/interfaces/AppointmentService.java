@@ -31,49 +31,49 @@ public interface AppointmentService {
     /**
      * Appointment ma'lumotlarini olish (ID bo'yicha)
      */
-    AppointmentResponse getAppointmentById(Long id);
+    AppointmentResponse getAppointmentById(java.util.UUID id);
 
     /**
      * Appointment yangilash
      */
-    AppointmentResponse updateAppointment(Long id, UpdateAppointmentRequest request);
+    AppointmentResponse updateAppointment(java.util.UUID id, UpdateAppointmentRequest request);
 
     /**
      * Appointment vaqtini o'zgartirish
      */
-    AppointmentResponse rescheduleAppointment(Long id, RescheduleAppointmentRequest request);
+    AppointmentResponse rescheduleAppointment(java.util.UUID id, RescheduleAppointmentRequest request);
 
     /**
      * Appointment bekor qilish
      */
-    AppointmentResponse cancelAppointment(Long id, CancelAppointmentRequest request);
+    AppointmentResponse cancelAppointment(java.util.UUID id, CancelAppointmentRequest request);
 
     /**
      * Appointment tasdiqlash
      */
-    AppointmentResponse confirmAppointment(Long id);
+    AppointmentResponse confirmAppointment(java.util.UUID id);
 
     /**
      * Appointment yakunlash
      */
-    AppointmentResponse completeAppointment(Long id);
+    AppointmentResponse completeAppointment(java.util.UUID id);
 
     /**
      * Appointment "No Show" qilish
      */
-    AppointmentResponse markAsNoShow(Long id);
+    AppointmentResponse markAsNoShow(java.util.UUID id);
 
     // ==================== AVAILABILITY CHECKING ====================
 
     /**
      * Bo'sh vaqtlarni olish
      */
-    List<AvailableSlotResponse> getAvailableSlots(Long staffId, LocalDate date, Long serviceId);
+    List<AvailableSlotResponse> getAvailableSlots(java.util.UUID staffId, LocalDate date, java.util.UUID serviceId);
 
     /**
      * Vaqt bo'shligini tekshirish
      */
-    boolean isSlotAvailable(Long staffId, LocalDate date, LocalTime time, Integer duration);
+    boolean isSlotAvailable(java.util.UUID staffId, LocalDate date, LocalTime time, Integer duration);
 
     // ==================== QUERIES ====================
 
@@ -85,12 +85,12 @@ public interface AppointmentService {
     /**
      * Staff bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByStaff(Long staffId, LocalDate date);
+    List<AppointmentResponse> getAppointmentsByStaff(java.util.UUID staffId, LocalDate date);
 
     /**
      * Employement bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByService(Long serviceId, LocalDate date);
+    List<AppointmentResponse> getAppointmentsByService(java.util.UUID serviceId, LocalDate date);
 
     /**
      * Mijoz telefon raqami bo'yicha appointmentlarni olish
@@ -141,7 +141,7 @@ public interface AppointmentService {
      * Staff bo'yicha sana oralig'ida appointmentlar
      */
     List<AppointmentResponse> getStaffAppointmentsByDateRange(
-            Long staffId, LocalDate startDate, LocalDate endDate);
+            java.util.UUID staffId, LocalDate startDate, LocalDate endDate);
 
     // ==================== CALENDAR ====================
 
@@ -160,7 +160,7 @@ public interface AppointmentService {
     /**
      * Staff bo'yicha statistika
      */
-    AppointmentStatisticsResponse getStaffStatistics(Long staffId);
+    AppointmentStatisticsResponse getStaffStatistics(java.util.UUID staffId);
 
     /**
      * Sana oralig'i bo'yicha statistika

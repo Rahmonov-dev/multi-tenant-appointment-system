@@ -1,0 +1,471 @@
+
+> Task :compileJava
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/entity/Employement.java:53: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+    private List<Staff> staff = new ArrayList<>();
+                        ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/entity/Employement.java:56: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+    private List<Appointment> appointments = new ArrayList<>();
+                              ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:57: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.getStaffById(id);
+                                                           ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:70: error: incompatible types: UUID cannot be converted to Long
+        StaffDetailResponse response = staffService.getStaffDetailById(id);
+                                                                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:82: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.updateStaff(id, request);
+                                                          ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:94: error: incompatible types: UUID cannot be converted to Long
+        staffService.deleteStaff(id);
+                                 ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:106: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.activateStaff(id);
+                                                            ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:118: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.deactivateStaff(id);
+                                                              ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:170: error: incompatible types: UUID cannot be converted to Long
+        List<StaffResponse> staff = staffService.getStaffByService(serviceId);
+                                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:184: error: incompatible types: UUID cannot be converted to Long
+        StaffScheduleResponse response = staffService.createOrUpdateSchedule(staffId, request);
+                                                                             ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:196: error: incompatible types: UUID cannot be converted to Long
+        List<StaffScheduleResponse> schedules = staffService.getStaffSchedules(staffId);
+                                                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:209: error: incompatible types: UUID cannot be converted to Long
+        StaffScheduleResponse schedule = staffService.getStaffScheduleByDay(staffId, dayOfWeek);
+                                                                            ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:222: error: incompatible types: UUID cannot be converted to Long
+        StaffScheduleResponse response = staffService.updateSchedule(staffId, dayOfWeek, request);
+                                                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:235: error: incompatible types: UUID cannot be converted to Long
+        staffService.deleteSchedule(staffId, dayOfWeek);
+                                    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:261: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.assignServiceToStaff(staffId, serviceId);
+                                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:274: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.removeServiceFromStaff(staffId, serviceId);
+                                                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:286: error: incompatible types: UUID cannot be converted to Long
+        StaffResponse response = staffService.assignServicesToStaff(staffId, serviceIds);
+                                                                    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/StaffScheduleResponse.java:24: error: incompatible types: UUID cannot be converted to Long
+                schedule.getId(),
+                              ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/interfaces/AuthService.java:36: error: incompatible types: no instance(s) of type variable(s) X exist so that UUID conforms to Long
+                    .orElseThrow(() -> new AccessDeniedException("User topilmadi"));
+                                ^
+  where X,T are type-variables:
+    X extends Throwable declared in method <X>orElseThrow(Supplier<? extends X>)
+    T extends Object declared in class Optional
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:32: error: StaffServiceImpl is not abstract and does not override abstract method assignServicesToStaff(Long,List<Long>) in StaffService
+public class StaffServiceImpl implements StaffService {
+       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:47: error: incompatible types: Long cannot be converted to UUID
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:49: error: incompatible types: UUID cannot be converted to Long
+                .findByTenantIdAndUserId(tenantId, currentUserId).orElseThrow(
+                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:54: error: incompatible types: Long cannot be converted to UUID
+        User user = userRepository.findById(request.userId())
+                                                          ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:83: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:88: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(id, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:97: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:102: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:117: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:122: error: incompatible types: Long cannot be converted to UUID
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:123: error: incompatible types: UUID cannot be converted to Long
+        Staff currentStaff = (Staff) staffRepository.findByTenantIdAndUserId(tenantId, currentUserId)
+                                                                                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:130: error: incompatible types: UUID cannot be converted to Long
+        Staff staffToUpdate = staffRepository.findById(id)
+                                                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:200: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:203: error: incompatible types: UUID cannot be converted to Long
+        List<Staff> staff = staffRepository.findActiveStaffByServiceId(serviceId);
+                                                                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:235: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:242: error: incompatible types: Long cannot be converted to UUID
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:244: error: incompatible types: UUID cannot be converted to Long
+                .findByTenantIdAndUserId(tenantId, currentUserId)
+                                                   ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:252: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(staffId, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:283: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:295: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(id, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:306: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:313: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(id, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:321: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:328: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(id, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:336: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:343: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(staffId, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:358: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:377: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:409: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:443: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:450: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(staffId, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:468: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:472: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:491: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:498: error: incompatible types: UUID cannot be converted to Long
+                .findByIdAndTenantId(staffId, tenantId)
+                                     ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/ServiceSummaryResponse.java:18: error: incompatible types: UUID cannot be converted to Long
+                employement.getId(),
+                                 ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/AppointmentSummaryResponse.java:25: error: incompatible types: UUID cannot be converted to Long
+                appointment.getId(),
+                                 ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:55: error: incompatible types: Long cannot be converted to UUID
+        Employement employement = serviceRepository.findByIdAndTenantId(request.serviceId(), tenantId)
+                                                                                         ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:356: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:456: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:742: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:322: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:363: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:389: error: incompatible types: UUID cannot be converted to Long
+        Staff staff = staffRepository.findById(staffId)
+                                               ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:417: error: incompatible types: List<UUID> cannot be converted to Iterable<Long>
+        List<Staff> staffList = staffRepository.findAllById(staffIds);
+                                                            ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/JwtFilter.java:35: error: incompatible types: UUID cannot be converted to Long
+                Long userId = service.getUserIdFromToken(jwt);
+                                                        ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:38: error: incompatible types: UUID cannot be converted to Long
+        List<Staff> staffRoles = staffRepository.findByUserId(user.getId());
+                                                                        ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:60: error: incompatible types: List<UUID> cannot be converted to List<Long>
+                .toList();
+                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:74: error: incompatible types: List<Long> cannot be converted to List<UUID>
+                staffIds,
+                ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:82: error: incompatible types: Long cannot be converted to UUID
+        User user = userRepository.findById(userId)
+                                            ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:85: error: incompatible types: UUID cannot be converted to Long
+        List<Staff> staffRoles = staffRepository.findByUserId(user.getId());
+                                                                        ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:108: error: incompatible types: List<UUID> cannot be converted to List<Long>
+                .toList();
+                       ^
+/home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:123: error: incompatible types: List<Long> cannot be converted to List<UUID>
+                staffIds,
+                ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AuthServiceImpl.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+70 errors
+2 warnings
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///home/baxti/IdeaProjects/multi-tenant-appointment-system/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/entity/Employement.java:53: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+      private List<Staff> staff = new ArrayList<>();
+                          ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/entity/Employement.java:56: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+      private List<Appointment> appointments = new ArrayList<>();
+                                ^
+  Note: Recompile with -Xlint:deprecation for details.
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:32: error: StaffServiceImpl is not abstract and does not override abstract method assignServicesToStaff(Long,List<Long>) in StaffService
+  public class StaffServiceImpl implements StaffService {
+         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:57: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.getStaffById(id);
+                                                             ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:70: error: incompatible types: UUID cannot be converted to Long
+          StaffDetailResponse response = staffService.getStaffDetailById(id);
+                                                                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:82: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.updateStaff(id, request);
+                                                            ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:94: error: incompatible types: UUID cannot be converted to Long
+          staffService.deleteStaff(id);
+                                   ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:106: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.activateStaff(id);
+                                                              ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:118: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.deactivateStaff(id);
+                                                                ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:170: error: incompatible types: UUID cannot be converted to Long
+          List<StaffResponse> staff = staffService.getStaffByService(serviceId);
+                                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:184: error: incompatible types: UUID cannot be converted to Long
+          StaffScheduleResponse response = staffService.createOrUpdateSchedule(staffId, request);
+                                                                               ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:196: error: incompatible types: UUID cannot be converted to Long
+          List<StaffScheduleResponse> schedules = staffService.getStaffSchedules(staffId);
+                                                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:209: error: incompatible types: UUID cannot be converted to Long
+          StaffScheduleResponse schedule = staffService.getStaffScheduleByDay(staffId, dayOfWeek);
+                                                                              ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:222: error: incompatible types: UUID cannot be converted to Long
+          StaffScheduleResponse response = staffService.updateSchedule(staffId, dayOfWeek, request);
+                                                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:235: error: incompatible types: UUID cannot be converted to Long
+          staffService.deleteSchedule(staffId, dayOfWeek);
+                                      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:261: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.assignServiceToStaff(staffId, serviceId);
+                                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:274: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.removeServiceFromStaff(staffId, serviceId);
+                                                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/controller/StaffController.java:286: error: incompatible types: UUID cannot be converted to Long
+          StaffResponse response = staffService.assignServicesToStaff(staffId, serviceIds);
+                                                                      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/StaffScheduleResponse.java:24: error: incompatible types: UUID cannot be converted to Long
+                  schedule.getId(),
+                                ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/interfaces/AuthService.java:36: error: incompatible types: no instance(s) of type variable(s) X exist so that UUID conforms to Long
+                      .orElseThrow(() -> new AccessDeniedException("User topilmadi"));
+                                  ^
+    where X,T are type-variables:
+      X extends Throwable declared in method <X>orElseThrow(Supplier<? extends X>)
+      T extends Object declared in class Optional
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:47: error: incompatible types: Long cannot be converted to UUID
+          java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:49: error: incompatible types: UUID cannot be converted to Long
+                  .findByTenantIdAndUserId(tenantId, currentUserId).orElseThrow(
+                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:54: error: incompatible types: Long cannot be converted to UUID
+          User user = userRepository.findById(request.userId())
+                                                            ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:88: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(id, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:102: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:122: error: incompatible types: Long cannot be converted to UUID
+          java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:123: error: incompatible types: UUID cannot be converted to Long
+          Staff currentStaff = (Staff) staffRepository.findByTenantIdAndUserId(tenantId, currentUserId)
+                                                                                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:130: error: incompatible types: UUID cannot be converted to Long
+          Staff staffToUpdate = staffRepository.findById(id)
+                                                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:203: error: incompatible types: UUID cannot be converted to Long
+          List<Staff> staff = staffRepository.findActiveStaffByServiceId(serviceId);
+                                                                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:242: error: incompatible types: Long cannot be converted to UUID
+          java.util.UUID currentUserId = AuthService.getCurrentUserId();
+                                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:244: error: incompatible types: UUID cannot be converted to Long
+                  .findByTenantIdAndUserId(tenantId, currentUserId)
+                                                     ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:252: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(staffId, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:295: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(id, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:313: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(id, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:328: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(id, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:343: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(staffId, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:450: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(staffId, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:472: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:498: error: incompatible types: UUID cannot be converted to Long
+                  .findByIdAndTenantId(staffId, tenantId)
+                                       ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/ServiceSummaryResponse.java:18: error: incompatible types: UUID cannot be converted to Long
+                  employement.getId(),
+                                   ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/dto/response/AppointmentSummaryResponse.java:25: error: incompatible types: UUID cannot be converted to Long
+                  appointment.getId(),
+                                   ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:55: error: incompatible types: Long cannot be converted to UUID
+          Employement employement = serviceRepository.findByIdAndTenantId(request.serviceId(), tenantId)
+                                                                                           ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:356: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:456: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AppointmentServiceImpl.java:742: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:322: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:363: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:389: error: incompatible types: UUID cannot be converted to Long
+          Staff staff = staffRepository.findById(staffId)
+                                                 ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/ServiceServiceImpl.java:417: error: incompatible types: List<UUID> cannot be converted to Iterable<Long>
+          List<Staff> staffList = staffRepository.findAllById(staffIds);
+                                                              ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/JwtFilter.java:35: error: incompatible types: UUID cannot be converted to Long
+                  Long userId = service.getUserIdFromToken(jwt);
+                                                          ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:38: error: incompatible types: UUID cannot be converted to Long
+          List<Staff> staffRoles = staffRepository.findByUserId(user.getId());
+                                                                          ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:60: error: incompatible types: List<UUID> cannot be converted to List<Long>
+                  .toList();
+                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:74: error: incompatible types: List<Long> cannot be converted to List<UUID>
+                  staffIds,
+                  ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:82: error: incompatible types: Long cannot be converted to UUID
+          User user = userRepository.findById(userId)
+                                              ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:85: error: incompatible types: UUID cannot be converted to Long
+          List<Staff> staffRoles = staffRepository.findByUserId(user.getId());
+                                                                          ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:108: error: incompatible types: List<UUID> cannot be converted to List<Long>
+                  .toList();
+                         ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/security/CustomUserDetailsService.java:123: error: incompatible types: List<Long> cannot be converted to List<UUID>
+                  staffIds,
+                  ^
+  Note: /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/AuthServiceImpl.java uses unchecked or unsafe operations.
+  Note: Recompile with -Xlint:unchecked for details.
+  Note: Some input files use or override a deprecated API.
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:83: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:97: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:117: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:200: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:235: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:283: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:306: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:321: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:336: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:358: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:377: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:409: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:443: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:468: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/baxti/IdeaProjects/multi-tenant-appointment-system/src/main/java/org/architect/multitenantappointmentsystem/service/StaffServiceImpl.java:491: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+  70 errors
+  2 warnings
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+
+BUILD FAILED in 7s
+1 actionable task: 1 executed

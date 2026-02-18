@@ -3,7 +3,7 @@ package org.architect.multitenantappointmentsystem.dto.response;
 import java.util.List;
 
 public record UserMeResponse(
-        Long id,
+        java.util.UUID id,
         String fullName,
         String phone,
         String email,

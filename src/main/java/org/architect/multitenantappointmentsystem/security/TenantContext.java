@@ -9,7 +9,11 @@ public class TenantContext {
     }
 
     public static Long getTenantId() {
-        return TENANT_ID.get();
+        Long tenantId = TENANT_ID.get();
+        if (tenantId == null) {
+            throw new IllegalStateException("Tenant context not set!");
+        }
+        return tenantId;
     }
 
     public static void clear() {

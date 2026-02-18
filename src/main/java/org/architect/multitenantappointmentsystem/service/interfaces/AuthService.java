@@ -29,7 +29,7 @@ public interface AuthService {
             return Optional.empty();
         }
     }
-    static Long getCurrentUserId() {
+    static java.util.UUID getCurrentUserId() {
         try {
             return getCurrentUser()
                     .map(AuthUser::getUserId)

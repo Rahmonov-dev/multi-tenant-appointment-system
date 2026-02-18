@@ -1,7 +1,7 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 public record StaffSummaryResponse(
-        Long id,
+        java.util.UUID id,
         String displayName,
         String position,
         Boolean isActive

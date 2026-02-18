@@ -10,26 +10,28 @@ import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
+
 @Getter
 public class AuthUser implements UserDetails {
 
-    private final Long userId;
+    private final java.util.UUID userId;
     private final String email;
     @JsonIgnore
     private final String passwordHash;
 
     private final List<Long> tenantIds; // Bir nechta tenant bo‘lsa
-    private final List<Long> staffIds;  // Bir nechta staff id
+    private final List<java.util.UUID> staffIds;  // Bir nechta staff id
     private final List<String> roles;   // Bir nechta role
 
     private final Collection<? extends GrantedAuthority> authorities;
 
     private AuthUser(
-            Long userId,
+            UUID userId,
             String email,
             String passwordHash,
             List<Long> tenantIds,
-            List<Long> staffIds,
+            List<UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {
@@ -45,7 +47,7 @@ public class AuthUser implements UserDetails {
     public static AuthUser create(
             User user,
             List<Long> tenantIds,
-            List<Long> staffIds,
+            List<java.util.UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {
@@ -61,10 +63,10 @@ public class AuthUser implements UserDetails {
     }
 
     public static AuthUser createWithoutPassword(
-            Long userId,
+            java.util.UUID userId,
             String email,
             List<Long> tenantIds,
-            List<Long> staffIds,
+            List<java.util.UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {

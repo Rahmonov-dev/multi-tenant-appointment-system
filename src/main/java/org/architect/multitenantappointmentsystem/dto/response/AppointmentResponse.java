@@ -9,13 +9,13 @@ import java.time.LocalTime;
 import java.text.DecimalFormat;
 
 public record AppointmentResponse(
-        Long id,
+        java.util.UUID id,
         Long tenantId,
         String tenantName,
-        Long staffId,
+        java.util.UUID staffId,
         String staffName,
         String staffPosition,
-        Long serviceId,
+        java.util.UUID serviceId,
         String serviceName,
         Integer serviceDuration,
         String customerName,

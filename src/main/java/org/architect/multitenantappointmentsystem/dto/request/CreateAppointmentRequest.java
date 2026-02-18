@@ -12,10 +12,10 @@ public record CreateAppointmentRequest(
         Long tenantId,
 
         @NotNull(message = "Staff ID bo'sh bo'lmasligi kerak")
-        Long staffId,
+        java.util.UUID staffId,
 
         @NotNull(message = "Employement ID bo'sh bo'lmasligi kerak")
-        Long serviceId,
+        java.util.UUID serviceId,
 
         @NotBlank(message = "Mijoz ismi bo'sh bo'lmasligi kerak")
         @Size(max = 200, message = "Mijoz ismi 200 ta belgidan oshmasligi kerak")

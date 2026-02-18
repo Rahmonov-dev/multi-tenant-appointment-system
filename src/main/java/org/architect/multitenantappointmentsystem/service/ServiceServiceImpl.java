@@ -74,7 +74,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse getServiceById(Long id) {
+    public ServiceResponse getServiceById(java.util.UUID id) {
         Long tenantId = TenantContext.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
@@ -95,7 +95,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceDetailResponse getServiceDetailById(Long id) {
+    public ServiceDetailResponse getServiceDetailById(java.util.UUID id) {
         Long tenantId = TenantContext.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
@@ -117,7 +117,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param request
      */
     @Override
-    public ServiceResponse updateService(Long id, UpdateServiceRequest request) {
+    public ServiceResponse updateService(java.util.UUID id, UpdateServiceRequest request) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -160,7 +160,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public void deleteService(Long id) {
+    public void deleteService(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -176,7 +176,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse activateService(Long id) {
+    public ServiceResponse activateService(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -194,7 +194,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse deactivateService(Long id) {
+    public ServiceResponse deactivateService(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -316,7 +316,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffId
      */
     @Override
-    public List<ServiceResponse> getServicesByStaff(Long staffId) {
+    public List<ServiceResponse> getServicesByStaff(java.util.UUID staffId) {
         Long tenantId = TenantContext.getTenantId();
 
         Staff staff = staffRepository.findById(staffId)
@@ -354,7 +354,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffId
      */
     @Override
-    public ServiceResponse assignStaffToService(Long serviceId, Long staffId) {
+    public ServiceResponse assignStaffToService(java.util.UUID serviceId, java.util.UUID staffId) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -380,7 +380,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffId
      */
     @Override
-    public ServiceResponse removeStaffFromService(Long serviceId, Long staffId) {
+    public ServiceResponse removeStaffFromService(java.util.UUID serviceId, java.util.UUID staffId) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -407,7 +407,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffIds
      */
     @Override
-    public ServiceResponse assignStaffsToService(Long serviceId, List<Long> staffIds) {
+    public ServiceResponse assignStaffsToService(java.util.UUID serviceId, List<java.util.UUID> staffIds) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -438,7 +438,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param serviceId
      */
     @Override
-    public ServiceResponse removeAllStaffFromService(Long serviceId) {
+    public ServiceResponse removeAllStaffFromService(java.util.UUID serviceId) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -462,7 +462,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param displayOrder
      */
     @Override
-    public ServiceResponse updateDisplayOrder(Long id, Integer displayOrder) {
+    public ServiceResponse updateDisplayOrder(java.util.UUID id, Integer displayOrder) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
@@ -480,7 +480,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param serviceIds
      */
     @Override
-    public void updateMultipleDisplayOrders(List<Long> serviceIds) {
+    public void updateMultipleDisplayOrders(List<java.util.UUID> serviceIds) {
         currentStaffService.requireOwnerOrManager();
         if (serviceIds == null || serviceIds.isEmpty()) {
             return;
@@ -494,7 +494,7 @@ public class ServiceServiceImpl implements ServiceService {
         }
 
         for (int i = 0; i < serviceIds.size(); i++) {
-            Long serviceId = serviceIds.get(i);
+            java.util.UUID serviceId = serviceIds.get(i);
             int finalI = i;
             employements.stream()
                     .filter(service -> service.getId().equals(serviceId))

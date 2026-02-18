@@ -5,7 +5,7 @@ import org.architect.multitenantappointmentsystem.entity.Employement;
 import java.math.BigDecimal;
 
 public record ServiceSummaryResponse(
-        Long id,
+        java.util.UUID id,
         String name,
         Integer duration,
         String formattedDuration,

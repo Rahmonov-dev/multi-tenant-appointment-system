@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record ServiceResponse(
-        Long id,
+        java.util.UUID id,
         Long tenantId,
         String tenantName,
         String name,

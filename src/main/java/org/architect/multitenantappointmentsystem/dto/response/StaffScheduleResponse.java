@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record StaffScheduleResponse(
-        Long id,
-        Long staffId,
+        java.util.UUID id,
+        java.util.UUID staffId,
         String staffName,
         Integer dayOfWeek,
         String dayName,

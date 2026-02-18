@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ServiceDetailResponse(
-        Long id,
+        java.util.UUID id,
         Long tenantId,
         String tenantName,
         String name,

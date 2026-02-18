@@ -46,7 +46,8 @@ public class ServiceController {
      * GET /api/services/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<ServiceResponse>> getService(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> getService(
+            @PathVariable java.util.UUID id, @PathVariable String slug) {
         ServiceResponse response = serviceService.getServiceById(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -56,9 +57,14 @@ public class ServiceController {
      * GET /api/services/{id}/detail
      */
     @GetMapping("/{id}/detail")
-    public ResponseEntity<ResponseDto<ServiceDetailResponse>> getServiceDetail(@PathVariable Long id, @PathVariable String slug) {
-        ServiceDetailResponse response = serviceService.getServiceDetailById(id);
+    public ResponseEntity<ResponseDto<ServiceDetailResponse>> getServiceDetail(
+            @PathVariable java.util.UUID id, @PathVariable String slug) {
+        ServiceDetailResponse response = serviceDetail(id);
         return ResponseDto.ok(response).toResponseEntity();
+    }
+
+    private ServiceDetailResponse serviceDetail(java.util.UUID id) {
+        return serviceService.getServiceDetailById(id);
     }
 
     /**
@@ -67,7 +73,7 @@ public class ServiceController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> updateService(
-            @PathVariable Long id,
+            @PathVariable java.util.UUID id,
             @Valid @RequestBody UpdateServiceRequest request, @PathVariable String slug) {
         ServiceResponse response = serviceService.updateService(id, request);
         return ResponseDto.ok(response).toResponseEntity();
@@ -78,7 +84,8 @@ public class ServiceController {
      * DELETE /api/services/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Void>> deleteService(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<Void>> deleteService(
+            @PathVariable java.util.UUID id, @PathVariable String slug) {
         serviceService.deleteService(id);
         return ResponseDto.ok().toResponseEntity();
     }
@@ -88,7 +95,8 @@ public class ServiceController {
      * PUT /api/services/{id}/activate
      */
     @PutMapping("/{id}/activate")
-    public ResponseEntity<ResponseDto<ServiceResponse>> activateService(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> activateService(
+            @PathVariable java.util.UUID id, @PathVariable String slug) {
         ServiceResponse response = serviceService.activateService(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -98,7 +106,8 @@ public class ServiceController {
      * PUT /api/services/{id}/deactivate
      */
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<ResponseDto<ServiceResponse>> deactivateService(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> deactivateService(
+            @PathVariable java.util.UUID id, @PathVariable String slug) {
         ServiceResponse response = serviceService.deactivateService(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -113,13 +122,13 @@ public class ServiceController {
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByTenant(
             @RequestParam(defaultValue = "false") Boolean activeOnly,
             @RequestParam(defaultValue = "false") Boolean ordered, @PathVariable String slug) {
-        
+
         List<ServiceResponse> services = ordered
                 ? serviceService.getServicesByTenantOrdered( activeOnly)
-                : (activeOnly 
+                : (activeOnly
                     ? serviceService.getActiveServicesByTenant()
                     : serviceService.getAllServicesByTenant());
-        
+
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -132,7 +141,7 @@ public class ServiceController {
             @RequestParam(defaultValue = "true") Boolean activeOnly,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size, @PathVariable String slug) {
-        
+
         Pageable pageable = PageRequest.of(page, size);
         Page<ServiceResponse> servicePage = serviceService.getServicesByTenantPaginated(
                 activeOnly, pageable);
@@ -147,7 +156,7 @@ public class ServiceController {
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> searchServices(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "true") Boolean activeOnly, @PathVariable String slug) {
-        
+
         List<ServiceResponse> services = serviceService.searchServices( keyword, activeOnly);
         return ResponseDto.ok(services).toResponseEntity();
     }
@@ -160,7 +169,7 @@ public class ServiceController {
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByPriceRange(
             @RequestParam BigDecimal minPrice,
             @RequestParam BigDecimal maxPrice, @PathVariable String slug) {
-        
+
         List<ServiceResponse> services = serviceService.getServicesByPriceRange(
                 minPrice, maxPrice);
         return ResponseDto.ok(services).toResponseEntity();
@@ -185,8 +194,8 @@ public class ServiceController {
      */
     @GetMapping("/by-staff/{staffId}")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByStaff(
-            @PathVariable Long staffId, @PathVariable String slug) {
-        
+            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+
         List<ServiceResponse> services = serviceService.getServicesByStaff(staffId);
         return ResponseDto.ok(services).toResponseEntity();
     }
@@ -198,7 +207,7 @@ public class ServiceController {
     @GetMapping("/popular")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getPopularServices(
             @RequestParam(defaultValue = "10") Integer limit, @PathVariable String slug) {
-        
+
         List<ServiceResponse> services = serviceService.getPopularServices(limit);
         return ResponseDto.ok(services).toResponseEntity();
     }
@@ -211,9 +220,9 @@ public class ServiceController {
      */
     @PostMapping("/{serviceId}/staff/{staffId}")
     public ResponseEntity<ResponseDto<ServiceResponse>> assignStaff(
-            @PathVariable Long serviceId,
-            @PathVariable Long staffId, @PathVariable String slug) {
-        
+            @PathVariable java.util.UUID serviceId,
+            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+
         ServiceResponse response = serviceService.assignStaffToService(serviceId, staffId);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -224,9 +233,9 @@ public class ServiceController {
      */
     @DeleteMapping("/{serviceId}/staff/{staffId}")
     public ResponseEntity<ResponseDto<ServiceResponse>> removeStaff(
-            @PathVariable Long serviceId,
-            @PathVariable Long staffId, @PathVariable String slug) {
-        
+            @PathVariable java.util.UUID serviceId,
+            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+
         ServiceResponse response = serviceService.removeStaffFromService(serviceId, staffId);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -237,9 +246,9 @@ public class ServiceController {
      */
     @PostMapping("/{serviceId}/staff/bulk")
     public ResponseEntity<ResponseDto<ServiceResponse>> assignStaffs(
-            @PathVariable Long serviceId,
-            @RequestBody List<Long> staffIds, @PathVariable String slug) {
-        
+            @PathVariable java.util.UUID serviceId,
+            @RequestBody List<java.util.UUID> staffIds, @PathVariable String slug) {
+
         ServiceResponse response = serviceService.assignStaffsToService(serviceId, staffIds);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -249,7 +258,8 @@ public class ServiceController {
      * DELETE /api/services/{serviceId}/staff
      */
     @DeleteMapping("/{serviceId}/staff")
-    public ResponseEntity<ResponseDto<ServiceResponse>> removeAllStaff(@PathVariable Long serviceId, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> removeAllStaff(
+            @PathVariable java.util.UUID serviceId, @PathVariable String slug) {
         ServiceResponse response = serviceService.removeAllStaffFromService(serviceId);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -262,9 +272,9 @@ public class ServiceController {
      */
     @PutMapping("/{id}/display-order")
     public ResponseEntity<ResponseDto<ServiceResponse>> updateDisplayOrder(
-            @PathVariable Long id,
+            @PathVariable java.util.UUID id,
             @RequestParam Integer displayOrder, @PathVariable String slug) {
-        
+
         ServiceResponse response = serviceService.updateDisplayOrder(id, displayOrder);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -275,8 +285,8 @@ public class ServiceController {
      */
     @PutMapping("/display-order/bulk")
     public ResponseEntity<ResponseDto<Void>> updateMultipleDisplayOrders(
-            @RequestBody List<Long> serviceIds, @PathVariable String slug) {
-        
+            @RequestBody List<java.util.UUID> serviceIds, @PathVariable String slug) {
+
         serviceService.updateMultipleDisplayOrders(serviceIds);
         return ResponseDto.ok().toResponseEntity();
     }

@@ -1,7 +1,7 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 public record ServiceShortResponse(
-        Long id,
+        java.util.UUID id,
         String name,
         String description,
         Integer durationMinutes,

@@ -44,11 +44,10 @@ public class StaffServiceImpl implements StaffService {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new NotFoundException(
                         "Tenant topilmadi: " + tenantId));
-        Long currentUserId = AuthService.getCurrentUserId();
-        Staff currentStaff = (Staff) staffRepository
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+        Staff currentStaff = staffRepository
                 .findByTenantIdAndUserId(tenantId, currentUserId).orElseThrow(
-                        () -> new NotFoundException("Staff topilmadi")
-                );
+                        () -> new NotFoundException("Staff topilmadi"));
         if (currentStaff.getRole() != StaffRole.OWNER) {
             throw new AccessDeniedException("Ruxsat yo‘q");
         }
@@ -83,24 +82,21 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional(readOnly = true)
-    public StaffResponse getStaffById(Long id) {
+    public StaffResponse getStaffById(java.util.UUID id) {
         Long tenantId = TenantContext.getTenantId();
         Staff staff = staffRepository
                 .findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() ->
-                        new NotFoundException("Bu " + id + " ga oid xodim topilmadi"));
+                .orElseThrow(() -> new NotFoundException("Bu " + id + " ga oid xodim topilmadi"));
 
         return StaffResponse.fromEntity(staff);
     }
-
-
 
     /**
      * Staff batafsil ma'lumotlarini olish (schedules va services bilan)
      */
     @Override
     @Transactional
-    public StaffDetailResponse getStaffDetailById(Long staffId) {
+    public StaffDetailResponse getStaffDetailById(java.util.UUID staffId) {
         Long tenantId = TenantContext.getTenantId();
 
         Staff staff = staffRepository.findById(staffId)
@@ -111,6 +107,7 @@ public class StaffServiceImpl implements StaffService {
         }
         return StaffDetailResponse.fromEntity(staff);
     }
+
     /**
      * Staff ma'lumotlarini yangilash
      *
@@ -119,11 +116,11 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public StaffResponse updateStaff(Long id, UpdateStaffRequest request) {
+    public StaffResponse updateStaff(java.util.UUID id, UpdateStaffRequest request) {
         Long tenantId = TenantContext.getTenantId();
 
-        Long currentUserId = AuthService.getCurrentUserId();
-        Staff currentStaff = (Staff) staffRepository.findByTenantIdAndUserId(tenantId, currentUserId)
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+        Staff currentStaff = staffRepository.findByTenantIdAndUserId(tenantId, currentUserId)
                 .orElseThrow(() -> new NotFoundException("Hozirgi staff topilmadi"));
 
         if (currentStaff.getRole() != StaffRole.OWNER && currentStaff.getRole() != StaffRole.MANAGER) {
@@ -154,6 +151,7 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StaffResponse> getAllStaffByTenant() {
         Long tenantId = TenantContext.getTenantId();
         Staff currentStaff = currentStaffService.getCurrentStaff();
@@ -168,6 +166,7 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StaffResponse> getActiveStaffByTenant() {
         Long tenantId = TenantContext.getTenantId();
         return staffRepository.findByTenantId(tenantId)
@@ -183,10 +182,9 @@ public class StaffServiceImpl implements StaffService {
      * @param role
      */
     @Override
+    @Transactional(readOnly = true)
     public List<StaffResponse> getStaffByTenantAndRole(StaffRole role) {
-        if (role == null) {
-            throw new IllegalArgumentException("Role bo'sh bo'lishi mumkin emas");
-        }
+        // Role null check removed, handled by controller validation
         Long tenantId = TenantContext.getTenantId();
         return staffRepository.findByTenantIdAndRole(tenantId, role)
                 .stream()
@@ -200,7 +198,8 @@ public class StaffServiceImpl implements StaffService {
      * @param serviceId
      */
     @Override
-    public List<StaffResponse> getStaffByService(Long serviceId) {
+    @Transactional(readOnly = true)
+    public List<StaffResponse> getStaffByService(java.util.UUID serviceId) {
         List<Staff> staff = staffRepository.findActiveStaffByServiceId(serviceId);
         if (staff.isEmpty()) {
             throw new NotFoundException("Staff topilmadi !!!");
@@ -217,6 +216,7 @@ public class StaffServiceImpl implements StaffService {
      * @param activeOnly
      * @param pageable
      */
+    @Transactional(readOnly = true)
     public Page<StaffResponse> getStaffByTenantPaginated(Boolean activeOnly, Pageable pageable) {
         Long tenantId = TenantContext.getTenantId();
         Page<Staff> staffPage = activeOnly != null && activeOnly
@@ -225,6 +225,7 @@ public class StaffServiceImpl implements StaffService {
 
         return staffPage.map(StaffResponse::fromEntity);
     }
+
     /**
      * Staff schedule yaratish yoki yangilash
      *
@@ -234,12 +235,12 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public StaffScheduleResponse createOrUpdateSchedule(
-            Long staffId,
+            java.util.UUID staffId,
             CreateStaffScheduleRequest request) {
 
         Long tenantId = TenantContext.getTenantId();
-        Long currentUserId = AuthService.getCurrentUserId();
-        Staff currentStaff = (Staff) staffRepository
+        java.util.UUID currentUserId = AuthService.getCurrentUserId();
+        Staff currentStaff = staffRepository
                 .findByTenantIdAndUserId(tenantId, currentUserId)
                 .orElseThrow(() -> new AccessDeniedException("Staff topilmadi"));
 
@@ -251,14 +252,14 @@ public class StaffServiceImpl implements StaffService {
                 .findByIdAndTenantId(staffId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
 
-        LocalTime start = LocalTime.parse(request.startTime());
-        LocalTime end = LocalTime.parse(request.endTime());
+        LocalTime start = request.startTime();
+        LocalTime end = request.endTime();
 
         if (end.isBefore(start)) {
             throw new BusinessException("EndTime startTime dan katta bo‘lishi kerak");
         }
-        Optional<StaffSchedule> existingSchedule =
-                scheduleRepository.findByStaffIdAndDayOfWeek(staffId, request.dayOfWeek());
+        Optional<StaffSchedule> existingSchedule = scheduleRepository.findByStaffIdAndDayOfWeek(staffId,
+                request.dayOfWeek());
 
         StaffSchedule schedule;
 
@@ -279,11 +280,9 @@ public class StaffServiceImpl implements StaffService {
         return StaffScheduleResponse.fromEntity(schedule);
     }
 
-
-
     @Override
     @Transactional
-    public void deleteStaff(Long id) {
+    public void deleteStaff(java.util.UUID id) {
 
         Long tenantId = TenantContext.getTenantId();
         Staff currentStaff = currentStaffService.getCurrentStaff();
@@ -299,7 +298,6 @@ public class StaffServiceImpl implements StaffService {
         staff.setIsActive(false);
     }
 
-
     /**
      * Staff aktivlashtirish
      *
@@ -307,7 +305,7 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public StaffResponse activateStaff(Long id) {
+    public StaffResponse activateStaff(java.util.UUID id) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -322,7 +320,7 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     @Transactional
-    public StaffResponse deactivateStaff(Long id) {
+    public StaffResponse deactivateStaff(java.util.UUID id) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -335,11 +333,9 @@ public class StaffServiceImpl implements StaffService {
         return StaffResponse.fromEntity(staff);
     }
 
-
-
     @Override
     @Transactional(readOnly = true)
-    public List<StaffScheduleResponse> getStaffSchedules(Long staffId) {
+    public List<StaffScheduleResponse> getStaffSchedules(java.util.UUID staffId) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -353,7 +349,6 @@ public class StaffServiceImpl implements StaffService {
                 .toList();
     }
 
-
     /**
      * Staff bitta kunning schedule ni olish
      *
@@ -363,7 +358,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional(readOnly = true)
     public StaffScheduleResponse getStaffScheduleByDay(
-            Long staffId,
+            java.util.UUID staffId,
             Integer dayOfWeek) {
 
         Long tenantId = TenantContext.getTenantId();
@@ -372,8 +367,7 @@ public class StaffServiceImpl implements StaffService {
                 .findByStaffIdAndDayOfWeekAndStaffTenantId(
                         staffId,
                         dayOfWeek,
-                        tenantId
-                )
+                        tenantId)
                 .orElseThrow(() -> new NotFoundException(
                         "Schedule topilmadi: staff=" + staffId + ", day=" + dayOfWeek));
 
@@ -382,9 +376,9 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     @Transactional
-    public StaffScheduleResponse updateSchedule(Long staffId,
-                                                Integer dayOfWeek,
-                                                UpdateStaffScheduleRequest request) {
+    public StaffScheduleResponse updateSchedule(java.util.UUID staffId,
+            Integer dayOfWeek,
+            UpdateStaffScheduleRequest request) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -393,8 +387,7 @@ public class StaffServiceImpl implements StaffService {
                         staffId,
                         dayOfWeek,
                         tenantId)
-                .orElseThrow(() ->
-                        new NotFoundException("Schedule topilmadi yoki sizga tegishli emas"));
+                .orElseThrow(() -> new NotFoundException("Schedule topilmadi yoki sizga tegishli emas"));
 
         if (request.startTime().isAfter(request.endTime())) {
             throw new IllegalArgumentException("Start time end time dan katta bo'lishi mumkin emas");
@@ -415,19 +408,17 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public void deleteSchedule(Long staffId, Integer dayOfWeek) {
+    public void deleteSchedule(java.util.UUID staffId, Integer dayOfWeek) {
         Long tenantId = TenantContext.getTenantId();
         StaffSchedule schedule = scheduleRepository
                 .findByStaffIdAndDayOfWeekAndStaffTenantId(
                         staffId,
                         dayOfWeek,
-                        tenantId
-                )
+                        tenantId)
                 .orElseThrow(() -> new NotFoundException("Schedule topilmadi"));
 
         schedule.setIsAvailable(false);
     }
-
 
     /**
      * Tenant bo'yicha barcha staff schedules ni olish
@@ -435,7 +426,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional(readOnly = true)
     public List<StaffScheduleResponse> getAllSchedulesByTenant() {
-        Long tenantId =TenantContext.getTenantId();
+        Long tenantId = TenantContext.getTenantId();
         return scheduleRepository
                 .findByStaffTenantId(tenantId)
                 .stream()
@@ -451,7 +442,7 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public StaffResponse assignServiceToStaff(Long staffId, Long serviceId) {
+    public StaffResponse assignServiceToStaff(java.util.UUID staffId, java.util.UUID serviceId) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -468,7 +459,6 @@ public class StaffServiceImpl implements StaffService {
         return StaffResponse.fromEntity(staff);
     }
 
-
     /**
      * Staff dan service olib tashlash
      *
@@ -477,7 +467,7 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public StaffResponse removeServiceFromStaff(Long staffId, Long serviceId) {
+    public StaffResponse removeServiceFromStaff(java.util.UUID staffId, java.util.UUID serviceId) {
 
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
@@ -500,7 +490,7 @@ public class StaffServiceImpl implements StaffService {
      */
     @Override
     @Transactional
-    public StaffResponse assignServicesToStaff(Long staffId, List<Long> serviceIds) {
+    public StaffResponse assignServicesToStaff(java.util.UUID staffId, List<java.util.UUID> serviceIds) {
 
         Long tenantId = TenantContext.getTenantId();
 
@@ -508,8 +498,7 @@ public class StaffServiceImpl implements StaffService {
                 .findByIdAndTenantId(staffId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
 
-        List<Employement> employements =
-                serviceRepository.findAllById(serviceIds);
+        List<Employement> employements = serviceRepository.findAllById(serviceIds);
 
         if (employements.size() != serviceIds.size()) {
             throw new NotFoundException("Ba'zi servicelar topilmadi");
@@ -519,7 +508,6 @@ public class StaffServiceImpl implements StaffService {
 
         return StaffResponse.fromEntity(staff);
     }
-
 
     /**
      * Tenant bo'yicha staff statistikasi
@@ -536,8 +524,7 @@ public class StaffServiceImpl implements StaffService {
         long inactiveStaff = totalStaff - activeStaff;
 
         long totalSchedules = scheduleRepository.countByStaffTenantId(tenantId);
-        long availableSchedules =
-                scheduleRepository.countByStaffTenantIdAndIsAvailableTrue(tenantId);
+        long availableSchedules = scheduleRepository.countByStaffTenantIdAndIsAvailableTrue(tenantId);
 
         return new StaffStatisticsResponse(
                 tenantId,
@@ -545,7 +532,6 @@ public class StaffServiceImpl implements StaffService {
                 activeStaff,
                 inactiveStaff,
                 totalSchedules,
-                availableSchedules
-        );
+                availableSchedules);
     }
 }

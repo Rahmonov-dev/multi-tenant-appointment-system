@@ -11,7 +11,7 @@ import java.util.List;
 public record CreateStaffRequest(
 
         @NotNull(message = "User ID bo'sh bo'lmasligi kerak")
-        Long userId,
+        java.util.UUID userId,
 
         @NotNull(message = "Role tanlanishi kerak")
         StaffRole role,

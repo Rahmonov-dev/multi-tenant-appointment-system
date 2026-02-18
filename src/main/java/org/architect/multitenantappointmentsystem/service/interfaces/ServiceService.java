@@ -19,12 +19,12 @@ public interface ServiceService {
     // ==================== CRUD OPERATIONS ====================
 
     ServiceResponse createService(CreateServiceRequest request);
-    ServiceResponse getServiceById(Long id);
-    ServiceDetailResponse getServiceDetailById(Long id);
-    ServiceResponse updateService(Long id, UpdateServiceRequest request);
-    void deleteService(Long id);
-    ServiceResponse activateService(Long id);
-    ServiceResponse deactivateService(Long id);
+    ServiceResponse getServiceById(java.util.UUID id);
+    ServiceDetailResponse getServiceDetailById(java.util.UUID id);
+    ServiceResponse updateService(java.util.UUID id, UpdateServiceRequest request);
+    void deleteService(java.util.UUID id);
+    ServiceResponse activateService(java.util.UUID id);
+    ServiceResponse deactivateService(java.util.UUID id);
 
     // ==================== QUERY OPERATIONS ====================
 
@@ -35,20 +35,20 @@ public interface ServiceService {
     List<ServiceResponse> searchServices( String keyword, Boolean activeOnly);
     List<ServiceResponse> getServicesByPriceRange( BigDecimal minPrice, BigDecimal maxPrice);
     List<ServiceResponse> getServicesByMaxDuration( Integer maxDuration);
-    List<ServiceResponse> getServicesByStaff(Long staffId);
+    List<ServiceResponse> getServicesByStaff(java.util.UUID staffId);
     List<ServiceResponse> getPopularServices( Integer limit);
 
     // ==================== STAFF ASSIGNMENT ====================
 
-    ServiceResponse assignStaffToService(Long serviceId, Long staffId);
-    ServiceResponse removeStaffFromService(Long serviceId, Long staffId);
-    ServiceResponse assignStaffsToService(Long serviceId, List<Long> staffIds);
-    ServiceResponse removeAllStaffFromService(Long serviceId);
+    ServiceResponse assignStaffToService(java.util.UUID serviceId, java.util.UUID staffId);
+    ServiceResponse removeStaffFromService(java.util.UUID serviceId, java.util.UUID staffId);
+    ServiceResponse assignStaffsToService(java.util.UUID serviceId, List<java.util.UUID> staffIds);
+    ServiceResponse removeAllStaffFromService(java.util.UUID serviceId);
 
     // ==================== DISPLAY ORDER ====================
 
-    ServiceResponse updateDisplayOrder(Long id, Integer displayOrder);
-    void updateMultipleDisplayOrders(List<Long> serviceIds);
+    ServiceResponse updateDisplayOrder(java.util.UUID id, Integer displayOrder);
+    void updateMultipleDisplayOrders(List<java.util.UUID> serviceIds);
 
     // ==================== STATISTICS ====================
 

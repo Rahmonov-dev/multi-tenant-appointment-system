@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
@@ -43,24 +42,19 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param request
      */
     @Override
+    @Transactional
     public AppointmentResponse createAppointment(CreateAppointmentRequest request) {
-        // 1. Validate entities
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        
+
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new NotFoundException("Tenant topilmadi"));
 
         Staff staff = staffRepository.findById(request.staffId())
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
 
-        Employement employement =
-                serviceRepository.findByIdAndTenantId(request.serviceId(), tenantId)
+        Employement employement = serviceRepository.findByIdAndTenantId(request.serviceId(), tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi"));
 
-        // 2. Validate tenant consistency
         if (!staff.getTenant().getId().equals(tenant.getId())) {
             throw new BusinessException("Staff boshqa tenantga tegishli");
         }
@@ -68,7 +62,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new BusinessException("Employement boshqa tenantga tegishli");
         }
 
-        // 3. Validate date (advance booking days)
         LocalDate today = LocalDate.now();
         LocalDate maxDate = today.plusDays(tenant.getAdvanceBookingDays());
         if (request.appointmentDate().isAfter(maxDate)) {
@@ -79,7 +72,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new BusinessException("O'tmishga navbat olib bo'lmaydi");
         }
 
-        // 4. Validate staff schedule
         int dayOfWeek = request.appointmentDate().getDayOfWeek().getValue();
         StaffSchedule schedule = staffScheduleRepository
                 .findByStaffIdAndDayOfWeek(staff.getId(), dayOfWeek)
@@ -91,31 +83,26 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (!schedule.isWorkingTime(request.startTime())) {
             throw new BusinessException(
-                    "Staff ish vaqtida emas. Ish vaqti: " + 
-                    schedule.getStartTime() + " - " + schedule.getEndTime());
+                    "Staff ish vaqtida emas. Ish vaqti: " +
+                            schedule.getStartTime() + " - " + schedule.getEndTime());
         }
 
-        // 5. Calculate end time
         LocalTime endTime = request.startTime().plusMinutes(employement.getDuration());
 
-        // Validate end time within working hours
         if (endTime.isAfter(schedule.getEndTime())) {
             throw new BusinessException("Appointment ish vaqtidan tashqariga chiqib ketadi");
         }
 
-        // 6. Check time conflict
         boolean hasConflict = appointmentRepository.hasTimeConflict(
                 staff.getId(),
                 request.appointmentDate(),
                 request.startTime(),
-                endTime
-        );
+                endTime);
 
         if (hasConflict) {
             throw new BusinessException("Bu vaqt allaqachon band");
         }
 
-        // 7. Create appointment
         Appointment appointment = new Appointment();
         appointment.setTenant(tenant);
         appointment.setStaff(staff);
@@ -148,18 +135,13 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param id
      */
     @Override
-    public AppointmentResponse getAppointmentById(Long id) {
+    @Transactional(readOnly = true)
+    public AppointmentResponse getAppointmentById(java.util.UUID id) {
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -170,24 +152,18 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param request
      */
     @Override
-    public AppointmentResponse updateAppointment(Long id, UpdateAppointmentRequest request) {
+    @Transactional
+    public AppointmentResponse updateAppointment(java.util.UUID id, UpdateAppointmentRequest request) {
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
-        // Can only update pending or confirmed appointments
         if (appointment.isFinal()) {
             throw new BusinessException("Yakunlangan yoki bekor qilingan appointmentni yangilab bo'lmaydi");
         }
 
-        // Update fields
+
         if (request.customerName() != null) {
             appointment.setCustomerName(request.customerName());
         }
@@ -196,7 +172,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -207,30 +183,22 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param request
      */
     @Override
-    public AppointmentResponse rescheduleAppointment(Long id, RescheduleAppointmentRequest request) {
+    @Transactional
+    public AppointmentResponse rescheduleAppointment(java.util.UUID id, RescheduleAppointmentRequest request) {
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
-        // Can only reschedule pending or confirmed appointments
         if (appointment.isFinal()) {
             throw new BusinessException("Yakunlangan yoki bekor qilingan appointmentni o'zgartirib bo'lmaydi");
         }
 
-        // Validate new date
         LocalDate today = LocalDate.now();
         if (request.newDate().isBefore(today)) {
             throw new BusinessException("O'tmishga navbat olib bo'lmaydi");
         }
 
-        // Validate staff schedule for new date
         int dayOfWeek = request.newDate().getDayOfWeek().getValue();
         StaffSchedule schedule = staffScheduleRepository
                 .findByStaffIdAndDayOfWeek(appointment.getStaff().getId(), dayOfWeek)
@@ -244,33 +212,29 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new BusinessException("Staff ish vaqtida emas");
         }
 
-        // Calculate new end time
         LocalTime newEndTime = request.newTime().plusMinutes(appointment.getEmployement().getDuration());
 
-        // Check time conflict (excluding current appointment)
         boolean hasConflict = appointmentRepository.hasTimeConflict(
                 appointment.getStaff().getId(),
                 request.newDate(),
                 request.newTime(),
-                newEndTime
-        );
+                newEndTime);
 
         if (hasConflict) {
             throw new BusinessException("Yangi vaqt allaqachon band");
         }
 
-        // Update appointment
         appointment.setAppointmentDate(request.newDate());
         appointment.setStartTime(request.newTime());
         appointment.setEndTime(newEndTime);
-        
+
         if (request.reason() != null) {
             String existingNotes = appointment.getNotes() != null ? appointment.getNotes() : "";
             appointment.setNotes(existingNotes + "\n[Vaqt o'zgartirildi: " + request.reason() + "]");
         }
 
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -281,12 +245,10 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param request
      */
     @Override
-    public AppointmentResponse cancelAppointment(Long id, CancelAppointmentRequest request) {
+    @Transactional
+    public AppointmentResponse cancelAppointment(java.util.UUID id, CancelAppointmentRequest request) {
         Long tenantId = TenantContext.getTenantId();
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -295,14 +257,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment.cancel();
-        
+
         if (request != null && request.reason() != null) {
             String existingNotes = appointment.getNotes() != null ? appointment.getNotes() : "";
             appointment.setNotes(existingNotes + "\n[Bekor qilish sababi: " + request.reason() + "]");
         }
 
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -312,16 +274,11 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param id
      */
     @Override
-    public AppointmentResponse confirmAppointment(Long id) {
+    @Transactional
+    public AppointmentResponse confirmAppointment(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -331,7 +288,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.confirm();
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -341,16 +298,11 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param id
      */
     @Override
-    public AppointmentResponse completeAppointment(Long id) {
+    @Transactional
+    public AppointmentResponse completeAppointment(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -360,7 +312,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.complete();
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -370,13 +322,11 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param id
      */
     @Override
-    public AppointmentResponse markAsNoShow(Long id) {
+    @Transactional
+    public AppointmentResponse markAsNoShow(java.util.UUID id) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
-        if (id == null) {
-            throw new BusinessException("Appointment ID talab qilinadi");
-        }
-        
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -386,7 +336,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.setStatus(AppointmentStatus.NO_SHOW);
         appointment = appointmentRepository.save(appointment);
-        
+
         return AppointmentResponse.fromEntity(appointment);
     }
 
@@ -398,16 +348,11 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param serviceId
      */
     @Override
-    public List<AvailableSlotResponse> getAvailableSlots(Long staffId, LocalDate date, Long serviceId) {
+    @Transactional(readOnly = true)
+    public List<AvailableSlotResponse> getAvailableSlots(java.util.UUID staffId, LocalDate date, java.util.UUID serviceId) {
         // Get staff
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (staffId == null) {
-            throw new BusinessException("Staff ID talab qilinadi");
-        }
-        
+
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
         if (!staff.getTenant().getId().equals(tenantId)) {
@@ -429,8 +374,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // If service provided, use service duration instead
         if (serviceId != null) {
-            Employement employement =
-                    serviceRepository.findByIdAndTenantId(serviceId, tenantId)
+            Employement employement = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                     .orElseThrow(() -> new NotFoundException("Employement topilmadi"));
             slotDuration = employement.getDuration();
         }
@@ -442,26 +386,24 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Get booked appointments for this day
         List<Appointment> bookedAppointments = appointmentRepository
-                .findActiveAppointments(staffId, date, Arrays.asList(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED));
+                .findActiveAppointments(staffId, date,
+                        Arrays.asList(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED));
 
         LocalTime current = startTime;
-        while (current.plusMinutes(slotDuration).isBefore(endTime) || 
-               current.plusMinutes(slotDuration).equals(endTime)) {
-            
+        while (current.plusMinutes(slotDuration).isBefore(endTime) ||
+                current.plusMinutes(slotDuration).equals(endTime)) {
+
             LocalTime slotStart = current;
             LocalTime slotEnd = current.plusMinutes(slotDuration);
 
             // Check if slot is available
             boolean available = bookedAppointments.stream()
-                    .noneMatch(app -> 
-                        (slotStart.isBefore(app.getEndTime()) && slotEnd.isAfter(app.getStartTime()))
-                    );
+                    .noneMatch(app -> (slotStart.isBefore(app.getEndTime()) && slotEnd.isAfter(app.getStartTime())));
 
             slots.add(new AvailableSlotResponse(
                     slotStart,
                     available,
-                    slotStart.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
-            ));
+                    slotStart.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))));
 
             current = current.plusMinutes(slotDuration);
         }
@@ -478,14 +420,15 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param duration
      */
     @Override
-    public boolean isSlotAvailable(Long staffId, LocalDate date, LocalTime time, Integer duration) {
+    public boolean isSlotAvailable(java.util.UUID staffId, LocalDate date, LocalTime time, Integer duration) {
         LocalTime endTime = time.plusMinutes(duration);
-        
+
         return !appointmentRepository.hasTimeConflict(staffId, date, time, endTime);
     }
 
     /**
      * Tenant bo'yicha appointmentlarni olish
+     * 
      * @param date
      */
     @Override
@@ -505,22 +448,17 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param date
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByStaff(Long staffId, LocalDate date) {
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getAppointmentsByStaff(java.util.UUID staffId, LocalDate date) {
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
-        }
-        if (staffId == null) {
-            throw new BusinessException("Staff ID talab qilinadi");
-        }
-        
+
         // Validate staff belongs to current tenant
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
         if (!staff.getTenant().getId().equals(tenantId)) {
             throw new BusinessException("Staff boshqa tenantga tegishli");
         }
-        
+
         return appointmentRepository.findByStaffIdAndAppointmentDate(staffId, date)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -534,7 +472,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param date
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByService(Long serviceId, LocalDate date) {
+    public List<AppointmentResponse> getAppointmentsByService(java.util.UUID serviceId, LocalDate date) {
         Long tenantId = TenantContext.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
@@ -542,11 +480,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (serviceId == null) {
             throw new BusinessException("Service ID talab qilinadi");
         }
-        
+
         // Validate service belongs to current tenant
         Employement service = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + serviceId));
-        
+
         return appointmentRepository.findByEmployementIdAndAppointmentDate(serviceId, date)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -567,7 +505,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (phone == null || phone.trim().isEmpty()) {
             throw new BusinessException("Telefon raqami talab qilinadi");
         }
-        
+
         return appointmentRepository.findByCustomerPhoneAndTenantId(phone.trim(), tenantId)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -591,7 +529,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * Bugungi appointmentlar
      */
     @Override
-    public List<AppointmentResponse> getTodayAppointments( ) {
+    public List<AppointmentResponse> getTodayAppointments() {
         Long tenantId = TenantContext.getTenantId();
         return appointmentRepository.findTodayAppointments(tenantId)
                 .stream()
@@ -601,10 +539,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /**
      * Kelajakdagi appointmentlar
+     * 
      * @param limit
      */
     @Override
-    public List<AppointmentResponse> getUpcomingAppointments( Integer limit) {
+    public List<AppointmentResponse> getUpcomingAppointments(Integer limit) {
         Long tenantId = TenantContext.getTenantId();
         Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit != null ? limit : 10);
         return appointmentRepository.findUpcomingAppointments(tenantId, pageable)
@@ -627,7 +566,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (phone == null || phone.trim().isEmpty()) {
             throw new BusinessException("Telefon raqami talab qilinadi");
         }
-        
+
         return appointmentRepository.findUpcomingAppointmentsByPhoneAndTenantId(phone.trim(), LocalDate.now(), tenantId)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -649,7 +588,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (phone == null || phone.trim().isEmpty()) {
             throw new BusinessException("Telefon raqami talab qilinadi");
         }
-        
+
         // Use tenant-scoped query
         Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit != null ? limit : 10);
         return appointmentRepository.findPastAppointmentsByPhoneAndTenantId(phone.trim(), tenantId, pageable)
@@ -660,6 +599,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /**
      * Status bo'yicha appointmentlar
+     * 
      * @param status
      */
     @Override
@@ -678,7 +618,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param pageable
      */
     @Override
-    public Page<AppointmentResponse> getAppointmentsPaginated( Boolean activeOnly, Pageable pageable) {
+    public Page<AppointmentResponse> getAppointmentsPaginated(Boolean activeOnly, Pageable pageable) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
         Page<Appointment> appointmentPage = appointmentRepository.findByTenantId(tenantId, pageable);
@@ -692,7 +632,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByDateRange( LocalDate startDate, LocalDate endDate) {
+    public List<AppointmentResponse> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
         return appointmentRepository.findByTenantIdAndDateRange(tenantId, startDate, endDate)
@@ -709,7 +649,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public List<AppointmentResponse> getStaffAppointmentsByDateRange(Long staffId, LocalDate startDate, LocalDate endDate) {
+    public List<AppointmentResponse> getStaffAppointmentsByDateRange(java.util.UUID staffId, LocalDate startDate,
+            LocalDate endDate) {
         return appointmentRepository.findByStaffIdAndDateRange(staffId, startDate, endDate)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -718,6 +659,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /**
      * Calendar view uchun ma'lumotlar
+     * 
      * @param startDate
      * @param endDate
      */
@@ -732,19 +674,19 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.groupingBy(Appointment::getAppointmentDate));
 
         List<AppointmentCalendarResponse> calendar = new ArrayList<>();
-        
+
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
             List<Appointment> dayAppointments = appointmentsByDate.getOrDefault(current, Collections.emptyList());
-            
+
             long confirmed = dayAppointments.stream()
                     .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED)
                     .count();
-            
+
             long pending = dayAppointments.stream()
                     .filter(a -> a.getStatus() == AppointmentStatus.PENDING)
                     .count();
-            
+
             long completed = dayAppointments.stream()
                     .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
                     .count();
@@ -758,8 +700,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                     dayAppointments.size(),
                     (int) confirmed,
                     (int) pending,
-                    (int) completed
-            ));
+                    (int) completed));
 
             current = current.plusDays(1);
         }
@@ -775,7 +716,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
 
-        List<Appointment> allAppointments = appointmentRepository.findByTenantId(tenantId, 
+        List<Appointment> allAppointments = appointmentRepository.findByTenantId(tenantId,
                 org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         return calculateStatistics(tenantId, allAppointments);
@@ -787,7 +728,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param staffId
      */
     @Override
-    public AppointmentStatisticsResponse getStaffStatistics(Long staffId) {
+    public AppointmentStatisticsResponse getStaffStatistics(java.util.UUID staffId) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
         if (tenantId == null) {
@@ -796,15 +737,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (staffId == null) {
             throw new BusinessException("Staff ID talab qilinadi");
         }
-        
+
         // Validate staff belongs to current tenant
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
         if (!staff.getTenant().getId().equals(tenantId)) {
             throw new BusinessException("Staff boshqa tenantga tegishli");
         }
-        
-        List<Appointment> allAppointments = appointmentRepository.findByStaffId(staffId, 
+
+        List<Appointment> allAppointments = appointmentRepository.findByStaffId(staffId,
                 org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         return calculateStatistics(tenantId, allAppointments);
@@ -817,7 +758,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public AppointmentStatisticsResponse getStatisticsByDateRange( LocalDate startDate, LocalDate endDate) {
+    public AppointmentStatisticsResponse getStatisticsByDateRange(LocalDate startDate, LocalDate endDate) {
         currentStaffService.requireOwnerOrManager();
         Long tenantId = TenantContext.getTenantId();
         List<Appointment> appointments = appointmentRepository
@@ -826,7 +767,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return calculateStatistics(tenantId, appointments);
     }
 
-    private AppointmentStatisticsResponse calculateStatistics(Long tenantId,List<Appointment> appointments) {
+    private AppointmentStatisticsResponse calculateStatistics(Long tenantId, List<Appointment> appointments) {
         long total = appointments.size();
         long pending = appointments.stream()
                 .filter(a -> a.getStatus() == AppointmentStatus.PENDING)
@@ -869,13 +810,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Completion rate
         long totalNonCancelled = total - cancelled;
-        double completionRate = totalNonCancelled > 0 
-                ? (double) completed / totalNonCancelled * 100 
+        double completionRate = totalNonCancelled > 0
+                ? (double) completed / totalNonCancelled * 100
                 : 0;
 
         // Cancellation rate
-        double cancellationRate = total > 0 
-                ? (double) cancelled / total * 100 
+        double cancellationRate = total > 0
+                ? (double) cancelled / total * 100
                 : 0;
 
         return AppointmentStatisticsResponse.fromEntity(
@@ -891,7 +832,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 completedRevenue,
                 avgPerDay,
                 completionRate,
-                cancellationRate
-        );
+                cancellationRate);
     }
 }

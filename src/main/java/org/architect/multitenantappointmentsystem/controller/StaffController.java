@@ -26,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/{slug}/api/staff")
 @Log4j2
+@org.springframework.validation.annotation.Validated
 public class StaffController {
 
     private final StaffService staffService;
@@ -45,8 +46,14 @@ public class StaffController {
      * Staff ma'lumotlarini olish (ID bo'yicha)
      * GET /api/staff/{id}
      */
+    /**
+     * Staff ma'lumotlarini olish (ID bo'yicha)
+     * GET /api/staff/{id}
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<StaffResponse>> getStaff(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<StaffResponse>> getStaff(
+            @PathVariable java.util.UUID id,
+            @PathVariable String slug) {
         StaffResponse response = staffService.getStaffById(id);
         System.out.println(response);
         return ResponseDto.ok(response).toResponseEntity();
@@ -57,7 +64,9 @@ public class StaffController {
      * GET /api/staff/{id}/detail
      */
     @GetMapping("/{id}/detail")
-    public ResponseEntity<ResponseDto<StaffDetailResponse>> getStaffDetail(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<StaffDetailResponse>> getStaffDetail(
+            @PathVariable java.util.UUID id,
+            @PathVariable String slug) {
         StaffDetailResponse response = staffService.getStaffDetailById(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -68,7 +77,7 @@ public class StaffController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<StaffResponse>> updateStaff(
-            @PathVariable Long id,
+            @PathVariable java.util.UUID id,
             @Valid @RequestBody UpdateStaffRequest request, @PathVariable String slug) {
         StaffResponse response = staffService.updateStaff(id, request);
         return ResponseDto.ok(response).toResponseEntity();
@@ -79,9 +88,11 @@ public class StaffController {
      * DELETE /api/staff/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<String>> deleteStaff(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<String>> deleteStaff(
+            @PathVariable java.util.UUID id,
+            @PathVariable String slug) {
         staffService.deleteStaff(id);
-        return ResponseDto.ok( "","Muvaffaqqiyatli o'chirildi").toResponseEntity();
+        return ResponseDto.ok("", "Muvaffaqqiyatli o'chirildi").toResponseEntity();
     }
 
     /**
@@ -89,7 +100,9 @@ public class StaffController {
      * PUT /api/staff/{id}/activate
      */
     @PutMapping("/{id}/activate")
-    public ResponseEntity<ResponseDto<StaffResponse>> activateStaff(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<StaffResponse>> activateStaff(
+            @PathVariable java.util.UUID id,
+            @PathVariable String slug) {
         StaffResponse response = staffService.activateStaff(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -99,7 +112,9 @@ public class StaffController {
      * PUT /api/staff/{id}/deactivate
      */
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<ResponseDto<StaffResponse>> deactivateStaff(@PathVariable Long id, @PathVariable String slug) {
+    public ResponseEntity<ResponseDto<StaffResponse>> deactivateStaff(
+            @PathVariable java.util.UUID id,
+            @PathVariable String slug) {
         StaffResponse response = staffService.deactivateStaff(id);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -129,7 +144,7 @@ public class StaffController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size, @PathVariable String slug) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<StaffResponse> staffPage = staffService.getStaffByTenantPaginated( activeOnly, pageable);
+        Page<StaffResponse> staffPage = staffService.getStaffByTenantPaginated(activeOnly, pageable);
         return ResponseDto.ok(staffPage.getContent()).toResponseEntity();
     }
 
@@ -150,7 +165,8 @@ public class StaffController {
      */
     @GetMapping("/by-service/{serviceId}")
     public ResponseEntity<ResponseDto<List<StaffResponse>>> getStaffByService(
-            @PathVariable Long serviceId, @PathVariable String slug) {
+            @PathVariable java.util.UUID serviceId,
+            @PathVariable String slug) {
         List<StaffResponse> staff = staffService.getStaffByService(serviceId);
         return ResponseDto.ok(staff).toResponseEntity();
     }
@@ -163,7 +179,7 @@ public class StaffController {
      */
     @PostMapping("/{staffId}/schedules")
     public ResponseEntity<ResponseDto<StaffScheduleResponse>> createSchedule(
-            @PathVariable Long staffId,
+            @PathVariable java.util.UUID staffId,
             @Valid @RequestBody CreateStaffScheduleRequest request, @PathVariable String slug) {
         StaffScheduleResponse response = staffService.createOrUpdateSchedule(staffId, request);
         return ResponseDto.ok(response).toResponseEntity();
@@ -175,7 +191,8 @@ public class StaffController {
      */
     @GetMapping("/{staffId}/schedules")
     public ResponseEntity<ResponseDto<List<StaffScheduleResponse>>> getStaffSchedules(
-            @PathVariable Long staffId, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @PathVariable String slug) {
         List<StaffScheduleResponse> schedules = staffService.getStaffSchedules(staffId);
         return ResponseDto.ok(schedules).toResponseEntity();
     }
@@ -186,8 +203,9 @@ public class StaffController {
      */
     @GetMapping("/{staffId}/schedules/{dayOfWeek}")
     public ResponseEntity<ResponseDto<StaffScheduleResponse>> getStaffScheduleByDay(
-            @PathVariable Long staffId,
-            @PathVariable Integer dayOfWeek, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek,
+            @PathVariable String slug) {
         StaffScheduleResponse schedule = staffService.getStaffScheduleByDay(staffId, dayOfWeek);
         return ResponseDto.ok(schedule).toResponseEntity();
     }
@@ -198,8 +216,8 @@ public class StaffController {
      */
     @PutMapping("/{staffId}/schedules/{dayOfWeek}")
     public ResponseEntity<ResponseDto<StaffScheduleResponse>> updateSchedule(
-            @PathVariable Long staffId,
-            @PathVariable Integer dayOfWeek,
+            @PathVariable java.util.UUID staffId,
+            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek,
             @Valid @RequestBody UpdateStaffScheduleRequest request, @PathVariable String slug) {
         StaffScheduleResponse response = staffService.updateSchedule(staffId, dayOfWeek, request);
         return ResponseDto.ok(response).toResponseEntity();
@@ -211,8 +229,9 @@ public class StaffController {
      */
     @DeleteMapping("/{staffId}/schedules/{dayOfWeek}")
     public ResponseEntity<ResponseDto<String>> deleteSchedule(
-            @PathVariable Long staffId,
-            @PathVariable Integer dayOfWeek, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek,
+            @PathVariable String slug) {
         staffService.deleteSchedule(staffId, dayOfWeek);
         return ResponseDto.ok("", "Tenant o'chirildi").toResponseEntity();
     }
@@ -223,7 +242,7 @@ public class StaffController {
      */
     @GetMapping("/schedules/by-tenant")
     public ResponseEntity<ResponseDto<List<StaffScheduleResponse>>> getAllSchedulesByTenant(
-             @PathVariable String slug) {
+            @PathVariable String slug) {
         List<StaffScheduleResponse> schedules = staffService.getAllSchedulesByTenant();
         return ResponseDto.ok(schedules).toResponseEntity();
     }
@@ -236,8 +255,9 @@ public class StaffController {
      */
     @PostMapping("/{staffId}/services/{serviceId}")
     public ResponseEntity<ResponseDto<StaffResponse>> assignService(
-            @PathVariable Long staffId,
-            @PathVariable Long serviceId, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @PathVariable java.util.UUID serviceId,
+            @PathVariable String slug) {
         StaffResponse response = staffService.assignServiceToStaff(staffId, serviceId);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -248,8 +268,9 @@ public class StaffController {
      */
     @DeleteMapping("/{staffId}/services/{serviceId}")
     public ResponseEntity<ResponseDto<StaffResponse>> removeService(
-            @PathVariable Long staffId,
-            @PathVariable Long serviceId, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @PathVariable java.util.UUID serviceId,
+            @PathVariable String slug) {
         StaffResponse response = staffService.removeServiceFromStaff(staffId, serviceId);
         return ResponseDto.ok(response).toResponseEntity();
     }
@@ -260,8 +281,8 @@ public class StaffController {
      */
     @PostMapping("/{staffId}/services/bulk")
     public ResponseEntity<ResponseDto<StaffResponse>> assignServices(
-            @PathVariable Long staffId,
-            @RequestBody List<Long> serviceIds, @PathVariable String slug) {
+            @PathVariable java.util.UUID staffId,
+            @RequestBody List<java.util.UUID> serviceIds, @PathVariable String slug) {
         StaffResponse response = staffService.assignServicesToStaff(staffId, serviceIds);
         return ResponseDto.ok(response).toResponseEntity();
     }

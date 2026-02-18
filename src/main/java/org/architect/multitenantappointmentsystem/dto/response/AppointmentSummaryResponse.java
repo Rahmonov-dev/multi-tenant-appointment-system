@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record AppointmentSummaryResponse(
-        Long id,
+        java.util.UUID id,
         String customerName,
         String serviceName,
         String staffName,

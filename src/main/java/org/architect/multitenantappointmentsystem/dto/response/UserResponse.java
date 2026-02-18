@@ -1,7 +1,7 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 public record UserResponse(
-        Long id,
+        java.util.UUID id,
         String firstName,
         String lastName,
         String email,
