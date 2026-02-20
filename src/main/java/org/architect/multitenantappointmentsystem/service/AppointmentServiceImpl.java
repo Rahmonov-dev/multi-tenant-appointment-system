@@ -12,7 +12,6 @@ import org.architect.multitenantappointmentsystem.dto.response.AvailableSlotResp
 import org.architect.multitenantappointmentsystem.entity.*;
 import org.architect.multitenantappointmentsystem.exception.*;
 import org.architect.multitenantappointmentsystem.repository.*;
-import org.architect.multitenantappointmentsystem.security.TenantContext;
 import org.architect.multitenantappointmentsystem.service.interfaces.AppointmentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,9 +42,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse createAppointment(CreateAppointmentRequest request) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public AppointmentResponse createAppointment(UUID tenantId, CreateAppointmentRequest request) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new NotFoundException("Tenant topilmadi"));
 
@@ -136,9 +133,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public AppointmentResponse getAppointmentById(java.util.UUID id) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public AppointmentResponse getAppointmentById(UUID tenantId, UUID id) {
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -153,9 +148,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse updateAppointment(java.util.UUID id, UpdateAppointmentRequest request) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public AppointmentResponse updateAppointment(UUID tenantId, UUID id, UpdateAppointmentRequest request) {
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -184,9 +177,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse rescheduleAppointment(java.util.UUID id, RescheduleAppointmentRequest request) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public AppointmentResponse rescheduleAppointment(UUID tenantId, UUID id, RescheduleAppointmentRequest request) {
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -246,9 +237,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse cancelAppointment(java.util.UUID id, CancelAppointmentRequest request) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public AppointmentResponse cancelAppointment(UUID tenantId, UUID id, CancelAppointmentRequest request) {
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
@@ -275,9 +264,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse confirmAppointment(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentResponse confirmAppointment(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
@@ -299,9 +287,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse completeAppointment(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentResponse completeAppointment(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
@@ -323,9 +310,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponse markAsNoShow(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentResponse markAsNoShow(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
@@ -349,9 +335,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<AvailableSlotResponse> getAvailableSlots(java.util.UUID staffId, LocalDate date, java.util.UUID serviceId) {
+    public List<AvailableSlotResponse> getAvailableSlots(UUID tenantId, UUID staffId, LocalDate date, UUID serviceId) {
         // Get staff
-        Long tenantId = TenantContext.getTenantId();
 
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi"));
@@ -420,7 +405,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param duration
      */
     @Override
-    public boolean isSlotAvailable(java.util.UUID staffId, LocalDate date, LocalTime time, Integer duration) {
+    public boolean isSlotAvailable(UUID tenantId, UUID staffId, LocalDate date, LocalTime time, Integer duration) {
         LocalTime endTime = time.plusMinutes(duration);
 
         return !appointmentRepository.hasTimeConflict(staffId, date, time, endTime);
@@ -432,9 +417,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param date
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByTenant(LocalDate date) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByTenant(UUID tenantId, LocalDate date) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         return appointmentRepository.findByTenantIdAndAppointmentDate(tenantId, date)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -449,8 +433,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentResponse> getAppointmentsByStaff(java.util.UUID staffId, LocalDate date) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByStaff(UUID tenantId, UUID staffId, LocalDate date) {
 
         // Validate staff belongs to current tenant
         Staff staff = staffRepository.findById(staffId)
@@ -472,8 +455,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param date
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByService(java.util.UUID serviceId, LocalDate date) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByService(UUID tenantId, UUID serviceId, LocalDate date) {
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
         }
@@ -497,8 +479,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param phone
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByCustomerPhone(String phone) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByCustomerPhone(UUID tenantId, String phone) {
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
         }
@@ -518,8 +499,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param email
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByCustomerEmail(String email) {
-        return appointmentRepository.findUpcomingAppointmentsByEmail(email, LocalDate.now())
+    public List<AppointmentResponse> getAppointmentsByCustomerEmail(UUID tenantId, String email) {
+        return appointmentRepository.findUpcomingAppointmentsByEmailAndTenantId(email, LocalDate.now(), tenantId)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -529,8 +510,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * Bugungi appointmentlar
      */
     @Override
-    public List<AppointmentResponse> getTodayAppointments() {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getTodayAppointments(UUID tenantId) {
         return appointmentRepository.findTodayAppointments(tenantId)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -543,8 +523,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param limit
      */
     @Override
-    public List<AppointmentResponse> getUpcomingAppointments(Integer limit) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getUpcomingAppointments(UUID tenantId, Integer limit) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit != null ? limit : 10);
         return appointmentRepository.findUpcomingAppointments(tenantId, pageable)
                 .stream()
@@ -558,8 +537,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param phone
      */
     @Override
-    public List<AppointmentResponse> getUpcomingAppointmentsByPhone(String phone) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getUpcomingAppointmentsByPhone(UUID tenantId, String phone) {
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
         }
@@ -580,8 +558,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param limit
      */
     @Override
-    public List<AppointmentResponse> getPastAppointmentsByPhone(String phone, Integer limit) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getPastAppointmentsByPhone(UUID tenantId, String phone, Integer limit) {
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
         }
@@ -603,8 +580,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param status
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByStatus(AppointmentStatus status) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByStatus(UUID tenantId, AppointmentStatus status) {
         return appointmentRepository.findByTenantIdAndStatus(tenantId, status)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -618,9 +594,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param pageable
      */
     @Override
-    public Page<AppointmentResponse> getAppointmentsPaginated(Boolean activeOnly, Pageable pageable) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public Page<AppointmentResponse> getAppointmentsPaginated(UUID tenantId, Boolean activeOnly, Pageable pageable) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         Page<Appointment> appointmentPage = appointmentRepository.findByTenantId(tenantId, pageable);
         return appointmentPage.map(AppointmentResponse::fromEntity);
     }
@@ -632,9 +607,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public List<AppointmentResponse> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentResponse> getAppointmentsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         return appointmentRepository.findByTenantIdAndDateRange(tenantId, startDate, endDate)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -649,7 +623,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public List<AppointmentResponse> getStaffAppointmentsByDateRange(java.util.UUID staffId, LocalDate startDate,
+    public List<AppointmentResponse> getStaffAppointmentsByDateRange(
+            UUID tenantId, UUID staffId, LocalDate startDate,
             LocalDate endDate) {
         return appointmentRepository.findByStaffIdAndDateRange(staffId, startDate, endDate)
                 .stream()
@@ -664,9 +639,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public List<AppointmentCalendarResponse> getCalendarData(LocalDate startDate, LocalDate endDate) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public List<AppointmentCalendarResponse> getCalendarData(UUID tenantId, LocalDate startDate, LocalDate endDate) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         List<Appointment> appointments = appointmentRepository
                 .findByTenantIdAndDateRange(tenantId, startDate, endDate);
 
@@ -692,7 +666,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .count();
 
             String dayName = current.getDayOfWeek()
-                    .getDisplayName(java.time.format.TextStyle.FULL, new Locale("uz", "UZ"));
+                    .getDisplayName(java.time.format.TextStyle.FULL, Locale.forLanguageTag("uz-UZ"));
 
             calendar.add(AppointmentCalendarResponse.fromEntity(
                     current,
@@ -712,9 +686,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * Tenant bo'yicha statistika
      */
     @Override
-    public AppointmentStatisticsResponse getStatistics() {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentStatisticsResponse getStatistics(UUID tenantId) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         List<Appointment> allAppointments = appointmentRepository.findByTenantId(tenantId,
                 org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
@@ -728,9 +701,8 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param staffId
      */
     @Override
-    public AppointmentStatisticsResponse getStaffStatistics(java.util.UUID staffId) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentStatisticsResponse getStaffStatistics(UUID tenantId, UUID staffId) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         if (tenantId == null) {
             throw new BusinessException("Tenant context topilmadi");
         }
@@ -758,16 +730,15 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param endDate
      */
     @Override
-    public AppointmentStatisticsResponse getStatisticsByDateRange(LocalDate startDate, LocalDate endDate) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public AppointmentStatisticsResponse getStatisticsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         List<Appointment> appointments = appointmentRepository
                 .findByTenantIdAndDateRange(tenantId, startDate, endDate);
 
         return calculateStatistics(tenantId, appointments);
     }
 
-    private AppointmentStatisticsResponse calculateStatistics(Long tenantId, List<Appointment> appointments) {
+    private AppointmentStatisticsResponse calculateStatistics(UUID tenantId, List<Appointment> appointments) {
         long total = appointments.size();
         long pending = appointments.stream()
                 .filter(a -> a.getStatus() == AppointmentStatus.PENDING)

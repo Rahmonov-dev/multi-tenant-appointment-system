@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Employement management controller
  */
 @RestController
-@RequestMapping("/{slug}/api/services")
+@RequestMapping("/api/{tenantId}/services")
 @RequiredArgsConstructor
 public class ServiceController {
 
@@ -36,8 +37,9 @@ public class ServiceController {
      */
     @PostMapping
     public ResponseEntity<ResponseDto<ServiceResponse>> createService(
-            @Valid @RequestBody CreateServiceRequest request, @PathVariable String slug) {
-        ServiceResponse response = serviceService.createService(request);
+            @PathVariable UUID tenantId,
+            @Valid @RequestBody CreateServiceRequest request) {
+        ServiceResponse response = serviceService.createService(tenantId, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -47,8 +49,9 @@ public class ServiceController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> getService(
-            @PathVariable java.util.UUID id, @PathVariable String slug) {
-        ServiceResponse response = serviceService.getServiceById(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        ServiceResponse response = serviceService.getServiceById(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -58,14 +61,13 @@ public class ServiceController {
      */
     @GetMapping("/{id}/detail")
     public ResponseEntity<ResponseDto<ServiceDetailResponse>> getServiceDetail(
-            @PathVariable java.util.UUID id, @PathVariable String slug) {
-        ServiceDetailResponse response = serviceDetail(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        ServiceDetailResponse response = serviceService.getServiceDetailById(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
-    private ServiceDetailResponse serviceDetail(java.util.UUID id) {
-        return serviceService.getServiceDetailById(id);
-    }
+    // Removed redundant private helper method
 
     /**
      * Employement ma'lumotlarini yangilash
@@ -73,9 +75,10 @@ public class ServiceController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> updateService(
-            @PathVariable java.util.UUID id,
-            @Valid @RequestBody UpdateServiceRequest request, @PathVariable String slug) {
-        ServiceResponse response = serviceService.updateService(id, request);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateServiceRequest request) {
+        ServiceResponse response = serviceService.updateService(tenantId, id, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -85,8 +88,9 @@ public class ServiceController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto<Void>> deleteService(
-            @PathVariable java.util.UUID id, @PathVariable String slug) {
-        serviceService.deleteService(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        serviceService.deleteService(tenantId, id);
         return ResponseDto.ok().toResponseEntity();
     }
 
@@ -96,8 +100,9 @@ public class ServiceController {
      */
     @PutMapping("/{id}/activate")
     public ResponseEntity<ResponseDto<ServiceResponse>> activateService(
-            @PathVariable java.util.UUID id, @PathVariable String slug) {
-        ServiceResponse response = serviceService.activateService(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        ServiceResponse response = serviceService.activateService(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -107,8 +112,9 @@ public class ServiceController {
      */
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<ResponseDto<ServiceResponse>> deactivateService(
-            @PathVariable java.util.UUID id, @PathVariable String slug) {
-        ServiceResponse response = serviceService.deactivateService(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        ServiceResponse response = serviceService.deactivateService(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -120,14 +126,15 @@ public class ServiceController {
      */
     @GetMapping("/by-tenant")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByTenant(
+            @PathVariable UUID tenantId,
             @RequestParam(defaultValue = "false") Boolean activeOnly,
-            @RequestParam(defaultValue = "false") Boolean ordered, @PathVariable String slug) {
+            @RequestParam(defaultValue = "false") Boolean ordered) {
 
         List<ServiceResponse> services = ordered
-                ? serviceService.getServicesByTenantOrdered( activeOnly)
+                ? serviceService.getServicesByTenantOrdered(tenantId, activeOnly)
                 : (activeOnly
-                    ? serviceService.getActiveServicesByTenant()
-                    : serviceService.getAllServicesByTenant());
+                    ? serviceService.getActiveServicesByTenant(tenantId)
+                    : serviceService.getAllServicesByTenant(tenantId));
 
         return ResponseDto.ok(services).toResponseEntity();
     }
@@ -138,13 +145,14 @@ public class ServiceController {
      */
     @GetMapping("/by-tenant/paginated")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByTenantPaginated(
+            @PathVariable UUID tenantId,
             @RequestParam(defaultValue = "true") Boolean activeOnly,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size, @PathVariable String slug) {
+            @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<ServiceResponse> servicePage = serviceService.getServicesByTenantPaginated(
-                activeOnly, pageable);
+                tenantId, activeOnly, pageable);
         return ResponseDto.ok(servicePage).toResponseEntity();
     }
 
@@ -154,10 +162,11 @@ public class ServiceController {
      */
     @GetMapping("/search")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> searchServices(
+            @PathVariable UUID tenantId,
             @RequestParam String keyword,
-            @RequestParam(defaultValue = "true") Boolean activeOnly, @PathVariable String slug) {
+            @RequestParam(defaultValue = "true") Boolean activeOnly) {
 
-        List<ServiceResponse> services = serviceService.searchServices( keyword, activeOnly);
+        List<ServiceResponse> services = serviceService.searchServices(tenantId, keyword, activeOnly);
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -167,11 +176,12 @@ public class ServiceController {
      */
     @GetMapping("/by-price-range")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByPriceRange(
+            @PathVariable UUID tenantId,
             @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice, @PathVariable String slug) {
+            @RequestParam BigDecimal maxPrice) {
 
         List<ServiceResponse> services = serviceService.getServicesByPriceRange(
-                minPrice, maxPrice);
+                tenantId, minPrice, maxPrice);
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -181,10 +191,11 @@ public class ServiceController {
      */
     @GetMapping("/by-max-duration")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByMaxDuration(
-            @RequestParam Integer maxDuration, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @RequestParam Integer maxDuration) {
 
         List<ServiceResponse> services = serviceService.getServicesByMaxDuration(
-                 maxDuration);
+                tenantId, maxDuration);
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -194,9 +205,10 @@ public class ServiceController {
      */
     @GetMapping("/by-staff/{staffId}")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getServicesByStaff(
-            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @PathVariable UUID staffId) {
 
-        List<ServiceResponse> services = serviceService.getServicesByStaff(staffId);
+        List<ServiceResponse> services = serviceService.getServicesByStaff(tenantId, staffId);
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -206,9 +218,10 @@ public class ServiceController {
      */
     @GetMapping("/popular")
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getPopularServices(
-            @RequestParam(defaultValue = "10") Integer limit, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @RequestParam(defaultValue = "10") Integer limit) {
 
-        List<ServiceResponse> services = serviceService.getPopularServices(limit);
+        List<ServiceResponse> services = serviceService.getPopularServices(tenantId, limit);
         return ResponseDto.ok(services).toResponseEntity();
     }
 
@@ -220,10 +233,11 @@ public class ServiceController {
      */
     @PostMapping("/{serviceId}/staff/{staffId}")
     public ResponseEntity<ResponseDto<ServiceResponse>> assignStaff(
-            @PathVariable java.util.UUID serviceId,
-            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @PathVariable UUID serviceId,
+            @PathVariable UUID staffId) {
 
-        ServiceResponse response = serviceService.assignStaffToService(serviceId, staffId);
+        ServiceResponse response = serviceService.assignStaffToService(tenantId, serviceId, staffId);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -233,10 +247,11 @@ public class ServiceController {
      */
     @DeleteMapping("/{serviceId}/staff/{staffId}")
     public ResponseEntity<ResponseDto<ServiceResponse>> removeStaff(
-            @PathVariable java.util.UUID serviceId,
-            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @PathVariable UUID serviceId,
+            @PathVariable UUID staffId) {
 
-        ServiceResponse response = serviceService.removeStaffFromService(serviceId, staffId);
+        ServiceResponse response = serviceService.removeStaffFromService(tenantId, serviceId, staffId);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -246,10 +261,11 @@ public class ServiceController {
      */
     @PostMapping("/{serviceId}/staff/bulk")
     public ResponseEntity<ResponseDto<ServiceResponse>> assignStaffs(
-            @PathVariable java.util.UUID serviceId,
-            @RequestBody List<java.util.UUID> staffIds, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @PathVariable UUID serviceId,
+            @RequestBody List<UUID> staffIds) {
 
-        ServiceResponse response = serviceService.assignStaffsToService(serviceId, staffIds);
+        ServiceResponse response = serviceService.assignStaffsToService(tenantId, serviceId, staffIds);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -259,8 +275,9 @@ public class ServiceController {
      */
     @DeleteMapping("/{serviceId}/staff")
     public ResponseEntity<ResponseDto<ServiceResponse>> removeAllStaff(
-            @PathVariable java.util.UUID serviceId, @PathVariable String slug) {
-        ServiceResponse response = serviceService.removeAllStaffFromService(serviceId);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID serviceId) {
+        ServiceResponse response = serviceService.removeAllStaffFromService(tenantId, serviceId);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -272,10 +289,11 @@ public class ServiceController {
      */
     @PutMapping("/{id}/display-order")
     public ResponseEntity<ResponseDto<ServiceResponse>> updateDisplayOrder(
-            @PathVariable java.util.UUID id,
-            @RequestParam Integer displayOrder, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id,
+            @RequestParam Integer displayOrder) {
 
-        ServiceResponse response = serviceService.updateDisplayOrder(id, displayOrder);
+        ServiceResponse response = serviceService.updateDisplayOrder(tenantId, id, displayOrder);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -285,9 +303,10 @@ public class ServiceController {
      */
     @PutMapping("/display-order/bulk")
     public ResponseEntity<ResponseDto<Void>> updateMultipleDisplayOrders(
-            @RequestBody List<java.util.UUID> serviceIds, @PathVariable String slug) {
+            @PathVariable UUID tenantId,
+            @RequestBody List<UUID> serviceIds) {
 
-        serviceService.updateMultipleDisplayOrders(serviceIds);
+        serviceService.updateMultipleDisplayOrders(tenantId, serviceIds);
         return ResponseDto.ok().toResponseEntity();
     }
 
@@ -298,9 +317,10 @@ public class ServiceController {
      * GET /api/services/statistics/{tenantId}
      */
     @GetMapping("/statistics")
-    public ResponseEntity<ResponseDto<ServiceStatisticsResponse>> getServiceStatistics(@PathVariable String slug) {
+    public ResponseEntity<ResponseDto<ServiceStatisticsResponse>> getServiceStatistics(
+            @PathVariable UUID tenantId) {
         
-        ServiceStatisticsResponse statistics = serviceService.getServiceStatistics();
+        ServiceStatisticsResponse statistics = serviceService.getServiceStatistics(tenantId);
         return ResponseDto.ok(statistics).toResponseEntity();
     }
 }

@@ -15,49 +15,52 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, java.util.UUID> {
 
         // ==================== DATE-BASED QUERIES ====================
 
-        List<Appointment> findByTenantIdAndAppointmentDate(Long tenantId, LocalDate date);
+        // ==================== DATE-BASED QUERIES ====================
 
-        List<Appointment> findByStaffIdAndAppointmentDate(java.util.UUID staffId, LocalDate date);
+        List<Appointment> findByTenantIdAndAppointmentDate(UUID tenantId, LocalDate date);
 
-        List<Appointment> findByEmployementIdAndAppointmentDate(java.util.UUID serviceId, LocalDate date);
+        List<Appointment> findByStaffIdAndAppointmentDate(UUID staffId, LocalDate date);
+
+        List<Appointment> findByEmployementIdAndAppointmentDate(UUID serviceId, LocalDate date);
 
         @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
                         "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
                         "ORDER BY a.appointmentDate, a.startTime")
-        List<Appointment> findByTenantIdAndDateRange(@Param("tenantId") Long tenantId,
+        List<Appointment> findByTenantIdAndDateRange(@Param("tenantId") UUID tenantId,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
         @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
                         "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
                         "ORDER BY a.appointmentDate, a.startTime")
-        List<Appointment> findByStaffIdAndDateRange(@Param("staffId") java.util.UUID staffId,
+        List<Appointment> findByStaffIdAndDateRange(@Param("staffId") UUID staffId,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
         // ==================== STATUS-BASED QUERIES ====================
 
-        List<Appointment> findByTenantIdAndStatus(Long tenantId, AppointmentStatus status);
+        List<Appointment> findByTenantIdAndStatus(UUID tenantId, AppointmentStatus status);
 
-        List<Appointment> findByStaffIdAndStatus(java.util.UUID staffId, AppointmentStatus status);
+        List<Appointment> findByStaffIdAndStatus(UUID staffId, AppointmentStatus status);
 
         @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
                         "AND a.appointmentDate = :date AND a.status IN :statuses " +
                         "ORDER BY a.startTime")
-        List<Appointment> findByTenantIdAndDateAndStatuses(@Param("tenantId") Long tenantId,
+        List<Appointment> findByTenantIdAndDateAndStatuses(@Param("tenantId") UUID tenantId,
                         @Param("date") LocalDate date,
                         @Param("statuses") List<AppointmentStatus> statuses);
 
         @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
                         "AND a.appointmentDate = :date AND a.status IN :statuses " +
                         "ORDER BY a.startTime")
-        List<Appointment> findActiveAppointments(@Param("staffId") java.util.UUID staffId,
+        List<Appointment> findActiveAppointments(@Param("staffId") UUID staffId,
                         @Param("date") LocalDate date,
                         @Param("statuses") List<AppointmentStatus> statuses);
 
@@ -74,14 +77,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         @Param("date") LocalDate date);
 
         @Query("SELECT a FROM Appointment a WHERE a.customerEmail = :email " +
-                        "AND a.appointmentDate >= :date " +
+                        "AND a.appointmentDate >= :date AND a.tenant.id = :tenantId " +
                         "ORDER BY a.appointmentDate, a.startTime")
-        List<Appointment> findUpcomingAppointmentsByEmail(@Param("email") String email,
-                        @Param("date") LocalDate date);
+        List<Appointment> findUpcomingAppointmentsByEmailAndTenantId(@Param("email") String email,
+                        @Param("date") LocalDate date,
+                        @Param("tenantId") UUID tenantId);
 
         // ==================== TIME CONFLICT CHECKING ====================
 
-        boolean existsByStaffIdAndAppointmentDateAndStartTime(java.util.UUID staffId,
+        boolean existsByStaffIdAndAppointmentDateAndStartTime(UUID staffId,
                         LocalDate date,
                         LocalTime time);
 
@@ -91,36 +95,36 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         "AND ((a.startTime <= :startTime AND a.endTime > :startTime) " +
                         "OR (a.startTime < :endTime AND a.endTime >= :endTime) " +
                         "OR (a.startTime >= :startTime AND a.endTime <= :endTime))")
-        boolean hasTimeConflict(@Param("staffId") java.util.UUID staffId,
+        boolean hasTimeConflict(@Param("staffId") UUID staffId,
                         @Param("date") LocalDate date,
                         @Param("startTime") LocalTime startTime,
                         @Param("endTime") LocalTime endTime);
 
         // ==================== PAGINATION ====================
 
-        Page<Appointment> findByTenantId(Long tenantId, Pageable pageable);
+        Page<Appointment> findByTenantId(UUID tenantId, Pageable pageable);
 
-        Page<Appointment> findByStaffId(java.util.UUID staffId, Pageable pageable);
+        Page<Appointment> findByStaffId(UUID staffId, Pageable pageable);
 
-        Page<Appointment> findByTenantIdAndStatus(Long tenantId, AppointmentStatus status, Pageable pageable);
+        Page<Appointment> findByTenantIdAndStatus(UUID tenantId, AppointmentStatus status, Pageable pageable);
 
         // ==================== STATISTICS ====================
 
-        long countByTenantId(Long tenantId);
+        long countByTenantId(UUID tenantId);
 
-        long countByTenantIdAndStatus(Long tenantId, AppointmentStatus status);
+        long countByTenantIdAndStatus(UUID tenantId, AppointmentStatus status);
 
-        long countByStaffId(java.util.UUID staffId);
+        long countByStaffId(UUID staffId);
 
-        long countByStaffIdAndStatus(java.util.UUID staffId, AppointmentStatus status);
+        long countByStaffIdAndStatus(UUID staffId, AppointmentStatus status);
 
         @Query("SELECT COUNT(a) FROM Appointment a WHERE a.tenant.id = :tenantId " +
                         "AND a.appointmentDate = :date")
-        long countByTenantIdAndDate(@Param("tenantId") Long tenantId, @Param("date") LocalDate date);
+        long countByTenantIdAndDate(@Param("tenantId") UUID tenantId, @Param("date") LocalDate date);
 
         @Query("SELECT COUNT(a) FROM Appointment a WHERE a.staff.id = :staffId " +
                         "AND a.appointmentDate BETWEEN :startDate AND :endDate")
-        long countByStaffIdAndDateRange(@Param("staffId") java.util.UUID staffId,
+        long countByStaffIdAndDateRange(@Param("staffId") UUID staffId,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
@@ -130,13 +134,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         "AND a.appointmentDate = CURRENT_DATE " +
                         "AND a.status IN ('PENDING', 'CONFIRMED') " +
                         "ORDER BY a.startTime")
-        List<Appointment> findTodayAppointments(@Param("tenantId") Long tenantId);
+        List<Appointment> findTodayAppointments(@Param("tenantId") UUID tenantId);
 
         @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
                         "AND a.appointmentDate = CURRENT_DATE " +
                         "AND a.status IN ('PENDING', 'CONFIRMED') " +
                         "ORDER BY a.startTime")
-        List<Appointment> findTodayAppointmentsByStaff(@Param("staffId") java.util.UUID staffId);
+        List<Appointment> findTodayAppointmentsByStaff(@Param("staffId") UUID staffId);
 
         // ==================== UPCOMING APPOINTMENTS ====================
 
@@ -144,7 +148,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         "AND a.appointmentDate >= CURRENT_DATE " +
                         "AND a.status IN ('PENDING', 'CONFIRMED') " +
                         "ORDER BY a.appointmentDate, a.startTime")
-        List<Appointment> findUpcomingAppointments(@Param("tenantId") Long tenantId, Pageable pageable);
+        List<Appointment> findUpcomingAppointments(@Param("tenantId") UUID tenantId, Pageable pageable);
 
         // ==================== PAST APPOINTMENTS ====================
 
@@ -157,18 +161,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         "AND a.appointmentDate < CURRENT_DATE AND a.tenant.id = :tenantId " +
                         "ORDER BY a.appointmentDate DESC, a.startTime DESC")
         List<Appointment> findPastAppointmentsByPhoneAndTenantId(@Param("phone") String customerPhone,
-                        @Param("tenantId") Long tenantId,
+                        @Param("tenantId") UUID tenantId,
                         Pageable pageable);
 
         // ==================== TENANT VALIDATION METHODS ====================
 
         @EntityGraph(attributePaths = { "staff", "tenant", "employement",
                         "staff.user" })
-        Optional<Appointment> findByIdAndTenantId(java.util.UUID id, Long tenantId);
+        Optional<Appointment> findByIdAndTenantId(UUID id, UUID tenantId);
 
         @EntityGraph(attributePaths = { "staff", "tenant", "employement",
                         "staff.user" })
-        List<Appointment> findByCustomerPhoneAndTenantId(String customerPhone, Long tenantId);
+        List<Appointment> findByCustomerPhoneAndTenantId(String customerPhone, UUID tenantId);
 
         @Query("SELECT a FROM Appointment a WHERE a.customerPhone = :phone " +
                         "AND a.appointmentDate >= :date AND a.tenant.id = :tenantId " +
@@ -177,5 +181,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
                         "staff.user" })
         List<Appointment> findUpcomingAppointmentsByPhoneAndTenantId(@Param("phone") String customerPhone,
                         @Param("date") LocalDate date,
-                        @Param("tenantId") Long tenantId);
+                        @Param("tenantId") UUID tenantId);
 }

@@ -11,8 +11,8 @@ import org.architect.multitenantappointmentsystem.dto.response.StaffStatisticsRe
 import org.architect.multitenantappointmentsystem.entity.StaffRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Staff management service interface
@@ -22,121 +22,55 @@ public interface StaffService {
 
     // ==================== STAFF CRUD ====================
 
-    /**
-     * Staff yaratish
-     */
-    StaffResponse createStaff(CreateStaffRequest request);
+    StaffResponse createStaff(UUID tenantId, CreateStaffRequest request);
 
-    /**
-     * Staff ma'lumotlarini olish (ID bo'yicha)
-     */
-    StaffResponse getStaffById(java.util.UUID id);
+    StaffResponse getStaffById(UUID tenantId, UUID id);
 
-    /**
-     * Staff batafsil ma'lumotlarini olish (schedules va services bilan)
-     */
-    StaffDetailResponse getStaffDetailById(java.util.UUID id);
+    StaffDetailResponse getStaffDetailById(UUID tenantId, UUID id);
 
-    /**
-     * Staff ma'lumotlarini yangilash
-     */
-    StaffResponse updateStaff(java.util.UUID id, UpdateStaffRequest request);
+    StaffResponse updateStaff(UUID tenantId, UUID id, UpdateStaffRequest request);
 
-    /**
-     * Staff o'chirish (soft delete)
-     */
-    void deleteStaff(java.util.UUID id);
+    void deleteStaff(UUID tenantId, UUID id);
 
-    /**
-     * Staff aktivlashtirish
-     */
-    StaffResponse activateStaff(java.util.UUID id);
+    StaffResponse activateStaff(UUID tenantId, UUID id);
 
-    /**
-     * Staff deaktivlashtirish
-     */
-    StaffResponse deactivateStaff(java.util.UUID id);
+    StaffResponse deactivateStaff(UUID tenantId, UUID id);
 
     // ==================== STAFF QUERIES ====================
 
-    /**
-     * Tenant bo'yicha barcha stafflarni olish
-     */
-    List<StaffResponse> getAllStaffByTenant();
+    List<StaffResponse> getAllStaffByTenant(UUID tenantId);
 
-    /**
-     * Tenant bo'yicha aktiv stafflarni olish
-     */
-    List<StaffResponse> getActiveStaffByTenant();
+    List<StaffResponse> getActiveStaffByTenant(UUID tenantId);
 
-    /**
-     * Tenant va role bo'yicha stafflarni olish
-     */
-    List<StaffResponse> getStaffByTenantAndRole( StaffRole role);
+    List<StaffResponse> getStaffByTenantAndRole(UUID tenantId, StaffRole role);
 
-    /**
-     * Employement bo'yicha stafflarni olish
-     */
-    List<StaffResponse> getStaffByService(java.util.UUID serviceId);
+    List<StaffResponse> getStaffByService(UUID tenantId, UUID serviceId);
 
-    /**
-     * Tenant bo'yicha stafflarni pagination bilan olish
-     */
-    Page<StaffResponse> getStaffByTenantPaginated( Boolean activeOnly, Pageable pageable);
+    Page<StaffResponse> getStaffByTenantPaginated(UUID tenantId, Boolean activeOnly, Pageable pageable);
 
     // ==================== SCHEDULE MANAGEMENT ====================
 
-    /**
-     * Staff schedule yaratish yoki yangilash
-     */
-    StaffScheduleResponse createOrUpdateSchedule(java.util.UUID staffId, CreateStaffScheduleRequest request);
+    StaffScheduleResponse createOrUpdateSchedule(UUID tenantId, UUID staffId, CreateStaffScheduleRequest request);
 
-    /**
-     * Staff barcha schedules ni olish
-     */
-    List<StaffScheduleResponse> getStaffSchedules(java.util.UUID staffId);
+    List<StaffScheduleResponse> getStaffSchedules(UUID tenantId, UUID staffId);
 
-    /**
-     * Staff bitta kunning schedule ni olish
-     */
-    StaffScheduleResponse getStaffScheduleByDay(java.util.UUID staffId, Integer dayOfWeek);
+    StaffScheduleResponse getStaffScheduleByDay(UUID tenantId, UUID staffId, Integer dayOfWeek);
 
-    /**
-     * Staff schedule yangilash
-     */
-    StaffScheduleResponse updateSchedule(java.util.UUID staffId, Integer dayOfWeek, UpdateStaffScheduleRequest request);
+    StaffScheduleResponse updateSchedule(UUID tenantId, UUID staffId, Integer dayOfWeek, UpdateStaffScheduleRequest request);
 
-    /**
-     * Staff schedule o'chirish (isAvailable = false qilish)
-     */
-    void deleteSchedule(java.util.UUID staffId, Integer dayOfWeek);
+    void deleteSchedule(UUID tenantId, UUID staffId, Integer dayOfWeek);
 
-    /**
-     * Tenant bo'yicha barcha staff schedules ni olish
-     */
-    List<StaffScheduleResponse> getAllSchedulesByTenant();
+    List<StaffScheduleResponse> getAllSchedulesByTenant(UUID tenantId);
 
     // ==================== SERVICE ASSIGNMENT ====================
 
-    /**
-     * Staff ga service biriktirish
-     */
-    StaffResponse assignServiceToStaff(java.util.UUID staffId, java.util.UUID serviceId);
+    StaffResponse assignServiceToStaff(UUID tenantId, UUID staffId, UUID serviceId);
 
-    /**
-     * Staff dan service olib tashlash
-     */
-    StaffResponse removeServiceFromStaff(java.util.UUID staffId, java.util.UUID serviceId);
+    StaffResponse removeServiceFromStaff(UUID tenantId, UUID staffId, UUID serviceId);
 
-    /**
-     * Staff ga bir nechta service biriktirish
-     */
-    StaffResponse assignServicesToStaff(java.util.UUID staffId, List<java.util.UUID> serviceIds);
+    StaffResponse assignServicesToStaff(UUID tenantId, UUID staffId, List<UUID> serviceIds);
 
     // ==================== STATISTICS ====================
 
-    /**
-     * Tenant bo'yicha staff statistikasi
-     */
-    StaffStatisticsResponse getStaffStatistics();
+    StaffStatisticsResponse getStaffStatistics(UUID tenantId);
 }

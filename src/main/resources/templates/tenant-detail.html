@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Tenant Detail - Appointment System', content=~{::section})}">
+
+<body>
+    <section>
+        <div id="tenant-header" class="page-header">
+            <h1 class="page-title" id="org-name">Yuklanmoqda...</h1>
+            <p id="business-type" class="badge badge-primary" style="margin-top: 0.5rem"></p>
+        </div>
+
+        <div class="detail-grid">
+            <!-- Left Column: Info & Services -->
+            <div class="col">
+                <div class="card" style="cursor: default; pointer-events: none; margin-bottom: 2rem;">
+                    <h3 class="section-title"><i data-lucide="info"></i> Ma'lumotlar</h3>
+                    <div class="info-row"><i data-lucide="map-pin"></i> <span id="address">-</span></div>
+                    <div class="info-row"><i data-lucide="phone"></i> <span id="phone">-</span></div>
+                    <div class="info-row"><i data-lucide="mail"></i> <span id="email">-</span></div>
+                    <div class="info-row"><i data-lucide="clock"></i> <span id="hours">-</span></div>
+                </div>
+
+                <h3 class="section-title"><i data-lucide="scissors"></i> Xizmatlar</h3>
+                <div id="services-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Staff -->
+            <div class="col">
+                <h3 class="section-title"><i data-lucide="users"></i> Mutaxassislar</h3>
+                <div id="staff-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', async () => {
+                const tenantId = window.location.pathname.split('/').pop();
+
+                // Load Tenant Basic Info
+                fetch(`/api/tenant/${tenantId}`)
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
+                            const t = result.data;
+                            document.getElementById('org-name').textContent = t.organizationName;
+                            document.getElementById('business-type').textContent = t.businessType;
+                            document.getElementById('address').textContent = t.address;
+                            document.getElementById('phone').textContent = t.phone;
+                            document.getElementById('email').textContent = t.email;
+                            document.getElementById('hours').textContent = `${t.workingHoursStart.substring(0, 5)} - ${t.workingHoursEnd.substring(0, 5)}`;
+                        }
+                    });
+
+                // Load Services
+                fetch(`/api/${tenantId}/services/by-tenant?activeOnly=true`)
+                    .then(res => res.json())
+                    .then(result => {
+                        const list = document.getElementById('services-list');
+                        if (result.success && result.data && result.data.length > 0) {
+                            list.innerHTML = '';
+                            result.data.forEach(s => {
+                                list.innerHTML += `
+                                <div class="list-item">
+                                    <div class="list-item-content">
+                                        <h4>${s.name}</h4>
+                                        <p>${s.description || 'Tavsif yo\'q'}</p>
+                                    </div>
+                                    <div style="text-align: right">
+                                        <div style="font-weight: 700; color: var(--primary)">${s.price.toLocaleString()} so'm</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted)">${s.duration} daqiqa</div>
+                                    </div>
+                                </div>
+                            `;
+                            });
+                        } else {
+                            list.innerHTML = '<p>Xizmatlar topilmadi.</p>';
+                        }
+                    });
+
+                // Load Staff
+                fetch(`/api/${tenantId}/staff/by-tenant?activeOnly=true`)
+                    .then(res => res.json())
+                    .then(result => {
+                        const list = document.getElementById('staff-list');
+                        if (result.success && result.data && result.data.length > 0) {
+                            list.innerHTML = '';
+                            result.data.forEach(s => {
+                                list.innerHTML += `
+                                <div class="list-item">
+                                    <div class="list-item-content">
+                                        <h4>${s.displayName}</h4>
+                                        <p>${s.position} (${s.role})</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" style="color: var(--border)"></i>
+                                </div>
+                            `;
+                            });
+                            lucide.createIcons();
+                        } else {
+                            list.innerHTML = '<p>Xodimlar topilmadi.</p>';
+                        }
+                    });
+
+                setTimeout(() => lucide.createIcons(), 1000);
+            });
+        </script>
+    </section>
+</body>
+
+</html>

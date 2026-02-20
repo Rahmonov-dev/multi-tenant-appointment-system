@@ -23,12 +23,13 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Appointment management controller
  */
 @RestController
-@RequestMapping("/{slug}/api/appointments")
+@RequestMapping("/api/{tenantId}/appointments")
 @RequiredArgsConstructor
 @org.springframework.validation.annotation.Validated
 public class AppointmentController {
@@ -43,8 +44,9 @@ public class AppointmentController {
      */
     @PostMapping
     public ResponseEntity<ResponseDto<AppointmentResponse>> createAppointment(
-            @Valid @RequestBody CreateAppointmentRequest request, @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.createAppointment(request);
+            @PathVariable UUID tenantId,
+            @Valid @RequestBody CreateAppointmentRequest request) {
+        AppointmentResponse response = appointmentService.createAppointment(tenantId, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -54,9 +56,9 @@ public class AppointmentController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<AppointmentResponse>> getAppointment(
-            @PathVariable java.util.UUID id,
-            @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.getAppointmentById(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        AppointmentResponse response = appointmentService.getAppointmentById(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -66,9 +68,10 @@ public class AppointmentController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<AppointmentResponse>> updateAppointment(
-            @PathVariable java.util.UUID id,
-            @Valid @RequestBody UpdateAppointmentRequest request, @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.updateAppointment(id, request);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateAppointmentRequest request) {
+        AppointmentResponse response = appointmentService.updateAppointment(tenantId, id, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -78,9 +81,10 @@ public class AppointmentController {
      */
     @PutMapping("/{id}/reschedule")
     public ResponseEntity<ResponseDto<AppointmentResponse>> rescheduleAppointment(
-            @PathVariable java.util.UUID id,
-            @Valid @RequestBody RescheduleAppointmentRequest request, @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.rescheduleAppointment(id, request);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id,
+            @Valid @RequestBody RescheduleAppointmentRequest request) {
+        AppointmentResponse response = appointmentService.rescheduleAppointment(tenantId, id, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -90,9 +94,9 @@ public class AppointmentController {
      */
     @PutMapping("/{id}/confirm")
     public ResponseEntity<ResponseDto<AppointmentResponse>> confirmAppointment(
-            @PathVariable java.util.UUID id,
-            @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.confirmAppointment(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        AppointmentResponse response = appointmentService.confirmAppointment(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -102,9 +106,10 @@ public class AppointmentController {
      */
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ResponseDto<AppointmentResponse>> cancelAppointment(
-            @PathVariable java.util.UUID id,
-            @Valid @RequestBody(required = false) CancelAppointmentRequest request, @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.cancelAppointment(id, request);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id,
+            @Valid @RequestBody(required = false) CancelAppointmentRequest request) {
+        AppointmentResponse response = appointmentService.cancelAppointment(tenantId, id, request);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -114,9 +119,9 @@ public class AppointmentController {
      */
     @PutMapping("/{id}/complete")
     public ResponseEntity<ResponseDto<AppointmentResponse>> completeAppointment(
-            @PathVariable java.util.UUID id,
-            @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.completeAppointment(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        AppointmentResponse response = appointmentService.completeAppointment(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -126,9 +131,9 @@ public class AppointmentController {
      */
     @PutMapping("/{id}/no-show")
     public ResponseEntity<ResponseDto<AppointmentResponse>> markAsNoShow(
-            @PathVariable java.util.UUID id,
-            @PathVariable String slug) {
-        AppointmentResponse response = appointmentService.markAsNoShow(id);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID id) {
+        AppointmentResponse response = appointmentService.markAsNoShow(tenantId, id);
         return ResponseDto.ok(response).toResponseEntity();
     }
 
@@ -140,11 +145,11 @@ public class AppointmentController {
      */
     @GetMapping("/available-slots")
     public ResponseEntity<ResponseDto<List<AvailableSlotResponse>>> getAvailableSlots(
-            @RequestParam java.util.UUID staffId,
+            @PathVariable UUID tenantId,
+            @RequestParam UUID staffId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) java.util.UUID serviceId,
-            @PathVariable String slug) {
-        List<AvailableSlotResponse> slots = appointmentService.getAvailableSlots(staffId, date, serviceId);
+            @RequestParam(required = false) UUID serviceId) {
+        List<AvailableSlotResponse> slots = appointmentService.getAvailableSlots(tenantId, staffId, date, serviceId);
         return ResponseDto.ok(slots).toResponseEntity();
     }
 
@@ -154,11 +159,12 @@ public class AppointmentController {
      */
     @GetMapping("/check-availability")
     public ResponseEntity<ResponseDto<Boolean>> checkAvailability(
-            @RequestParam java.util.UUID staffId,
+            @PathVariable UUID tenantId,
+            @RequestParam UUID staffId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime time,
-            @RequestParam Integer duration, @PathVariable String slug) {
-        boolean available = appointmentService.isSlotAvailable(staffId, date, time, duration);
+            @RequestParam Integer duration) {
+        boolean available = appointmentService.isSlotAvailable(tenantId, staffId, date, time, duration);
         return ResponseDto.ok(available).toResponseEntity();
     }
 
@@ -170,8 +176,9 @@ public class AppointmentController {
      */
     @GetMapping("/by-tenant")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByTenant(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByTenant(date);
+            @PathVariable UUID tenantId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByTenant(tenantId, date);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -181,9 +188,10 @@ public class AppointmentController {
      */
     @GetMapping("/by-staff/{staffId}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByStaff(
-            @PathVariable java.util.UUID staffId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByStaff(staffId, date);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID staffId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByStaff(tenantId, staffId, date);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -193,9 +201,10 @@ public class AppointmentController {
      */
     @GetMapping("/by-service/{serviceId}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByService(
-            @PathVariable java.util.UUID serviceId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByService(serviceId, date);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID serviceId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByService(tenantId, serviceId, date);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -205,8 +214,9 @@ public class AppointmentController {
      */
     @GetMapping("/by-phone/{phone}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByPhone(
-            @PathVariable String phone, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByCustomerPhone(phone);
+            @PathVariable UUID tenantId,
+            @PathVariable String phone) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByCustomerPhone(tenantId, phone);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -216,8 +226,8 @@ public class AppointmentController {
      */
     @GetMapping("/today")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getTodayAppointments(
-            @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getTodayAppointments();
+            @PathVariable UUID tenantId) {
+        List<AppointmentResponse> appointments = appointmentService.getTodayAppointments(tenantId);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -227,8 +237,9 @@ public class AppointmentController {
      */
     @GetMapping("/upcoming")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getUpcomingAppointments(
-            @RequestParam(defaultValue = "10") Integer limit, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getUpcomingAppointments(limit);
+            @PathVariable UUID tenantId,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        List<AppointmentResponse> appointments = appointmentService.getUpcomingAppointments(tenantId, limit);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -238,8 +249,9 @@ public class AppointmentController {
      */
     @GetMapping("/upcoming/by-phone/{phone}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getUpcomingAppointmentsByPhone(
-            @PathVariable String phone, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getUpcomingAppointmentsByPhone(phone);
+            @PathVariable UUID tenantId,
+            @PathVariable String phone) {
+        List<AppointmentResponse> appointments = appointmentService.getUpcomingAppointmentsByPhone(tenantId, phone);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -249,9 +261,10 @@ public class AppointmentController {
      */
     @GetMapping("/past/by-phone/{phone}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getPastAppointmentsByPhone(
+            @PathVariable UUID tenantId,
             @PathVariable String phone,
-            @RequestParam(defaultValue = "10") Integer limit, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getPastAppointmentsByPhone(phone, limit);
+            @RequestParam(defaultValue = "10") Integer limit) {
+        List<AppointmentResponse> appointments = appointmentService.getPastAppointmentsByPhone(tenantId, phone, limit);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -261,8 +274,9 @@ public class AppointmentController {
      */
     @GetMapping("/by-status")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByStatus(
-            @RequestParam AppointmentStatus status, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByStatus(status);
+            @PathVariable UUID tenantId,
+            @RequestParam AppointmentStatus status) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByStatus(tenantId, status);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -272,11 +286,12 @@ public class AppointmentController {
      */
     @GetMapping("/paginated")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsPaginated(
+            @PathVariable UUID tenantId,
             @RequestParam(defaultValue = "false") Boolean activeOnly,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size, @PathVariable String slug) {
+            @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AppointmentResponse> appointmentPage = appointmentService.getAppointmentsPaginated(activeOnly, pageable);
+        Page<AppointmentResponse> appointmentPage = appointmentService.getAppointmentsPaginated(tenantId, activeOnly, pageable);
         return ResponseDto.ok(appointmentPage).toResponseEntity();
     }
 
@@ -286,9 +301,10 @@ public class AppointmentController {
      */
     @GetMapping("/date-range")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointmentsByDateRange(
+            @PathVariable UUID tenantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByDateRange(startDate, endDate);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<AppointmentResponse> appointments = appointmentService.getAppointmentsByDateRange(tenantId, startDate, endDate);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
 
@@ -298,10 +314,11 @@ public class AppointmentController {
      */
     @GetMapping("/staff-date-range/{staffId}")
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getStaffAppointmentsByDateRange(
-            @PathVariable java.util.UUID staffId,
+            @PathVariable UUID tenantId,
+            @PathVariable UUID staffId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, @PathVariable String slug) {
-        List<AppointmentResponse> appointments = appointmentService.getStaffAppointmentsByDateRange(staffId, startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<AppointmentResponse> appointments = appointmentService.getStaffAppointmentsByDateRange(tenantId, staffId, startDate,
                 endDate);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
@@ -314,9 +331,10 @@ public class AppointmentController {
      */
     @GetMapping("/calendar")
     public ResponseEntity<ResponseDto<List<AppointmentCalendarResponse>>> getCalendarData(
+            @PathVariable UUID tenantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, @PathVariable String slug) {
-        List<AppointmentCalendarResponse> calendar = appointmentService.getCalendarData(startDate, endDate);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<AppointmentCalendarResponse> calendar = appointmentService.getCalendarData(tenantId, startDate, endDate);
         return ResponseDto.ok(calendar).toResponseEntity();
     }
 
@@ -328,8 +346,8 @@ public class AppointmentController {
      */
     @GetMapping("/statistics")
     public ResponseEntity<ResponseDto<AppointmentStatisticsResponse>> getStatistics(
-            @PathVariable String slug) {
-        AppointmentStatisticsResponse statistics = appointmentService.getStatistics();
+            @PathVariable UUID tenantId) {
+        AppointmentStatisticsResponse statistics = appointmentService.getStatistics(tenantId);
         return ResponseDto.ok(statistics).toResponseEntity();
     }
 
@@ -339,8 +357,9 @@ public class AppointmentController {
      */
     @GetMapping("/statistics/staff/{staffId}")
     public ResponseEntity<ResponseDto<AppointmentStatisticsResponse>> getStaffStatistics(
-            @PathVariable java.util.UUID staffId, @PathVariable String slug) {
-        AppointmentStatisticsResponse statistics = appointmentService.getStaffStatistics(staffId);
+            @PathVariable UUID tenantId,
+            @PathVariable UUID staffId) {
+        AppointmentStatisticsResponse statistics = appointmentService.getStaffStatistics(tenantId, staffId);
         return ResponseDto.ok(statistics).toResponseEntity();
     }
 
@@ -350,9 +369,10 @@ public class AppointmentController {
      */
     @GetMapping("/statistics/date-range")
     public ResponseEntity<ResponseDto<AppointmentStatisticsResponse>> getStatisticsByDateRange(
+            @PathVariable UUID tenantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, @PathVariable String slug) {
-        AppointmentStatisticsResponse statistics = appointmentService.getStatisticsByDateRange(startDate, endDate);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        AppointmentStatisticsResponse statistics = appointmentService.getStatisticsByDateRange(tenantId, startDate, endDate);
         return ResponseDto.ok(statistics).toResponseEntity();
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -92,7 +93,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public TenantResponse getTenantById(Long id) {
+    public TenantResponse getTenantById(UUID id) {
         Tenant tenant = tenantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tenant topilmadi: " + id));
         if (!tenant.getIsActive()) {
@@ -101,12 +102,6 @@ public class TenantServiceImpl implements TenantService {
         return TenantResponse.from(tenant);
     }
 
-    @Override
-    public TenantResponse getTenantByKey(String tenantKey) {
-        Tenant tenant = tenantRepository.findByTenantKey(tenantKey)
-                .orElseThrow(() -> new NotFoundException("Tenant topilmadi: " + tenantKey));
-        return TenantResponse.from(tenant);
-    }
 
     @Override
     public TenantResponse getTenantBySlug(String slug) {
@@ -116,7 +111,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public TenantResponse updateTenant(Long id, UpdateTenantRequest request) {
+    public TenantResponse updateTenant(UUID id, UpdateTenantRequest request) {
         Tenant tenant = tenantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tenant topilmadi: " + id));
 
@@ -153,7 +148,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void deleteTenant(Long id) {
+    public void deleteTenant(UUID id) {
         Tenant tenant = tenantRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Tenant Topilmadi" + id));
 

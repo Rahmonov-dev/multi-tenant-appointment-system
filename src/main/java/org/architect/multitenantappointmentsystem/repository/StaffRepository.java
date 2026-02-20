@@ -20,53 +20,53 @@ public interface StaffRepository extends JpaRepository<Staff, java.util.UUID> {
 
     // Basic queries
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    List<Staff> findByTenantId(Long tenantId);
+    List<Staff> findByTenantId(UUID tenantId);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    List<Staff> findByTenantIdAndIsActive(Long tenantId, Boolean isActive);
+    List<Staff> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    Page<Staff> findByTenantId(Long tenantId, Pageable pageable);
+    Page<Staff> findByTenantId(UUID tenantId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    Page<Staff> findByTenantIdAndIsActive(Long tenantId, Boolean isActive, Pageable pageable);
+    Page<Staff> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    Optional<Staff> findByIdAndTenantId(java.util.UUID id, Long tenantId);
+    Optional<Staff> findByIdAndTenantId(UUID id, UUID tenantId);
 
     // Role-based queries
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    List<Staff> findByTenantIdAndRole(Long tenantId, StaffRole role);
+    List<Staff> findByTenantIdAndRole(UUID tenantId, StaffRole role);
 
-    List<Staff> findByTenantIdAndRoleAndIsActive(Long tenantId, StaffRole role, Boolean isActive);
+    List<Staff> findByTenantIdAndRoleAndIsActive(UUID tenantId, StaffRole role, Boolean isActive);
 
     // User-related queries
-    Optional<Staff> findByUserIdAndTenantId(java.util.UUID userId, Long tenantId);
+    Optional<Staff> findByUserIdAndTenantId(UUID userId, UUID tenantId);
 
-    boolean existsByUserIdAndTenantId(java.util.UUID userId, Long tenantId);
+    boolean existsByUserIdAndTenantId(UUID userId, UUID tenantId);
 
     // Employement-related queries
     @Query("SELECT s FROM Staff s JOIN s.employements srv WHERE srv.id = :serviceId AND s.isActive = true")
-    List<Staff> findActiveStaffByServiceId(@Param("serviceId") java.util.UUID serviceId);
+    List<Staff> findActiveStaffByServiceId(@Param("serviceId") UUID serviceId);
 
     @Query("SELECT s FROM Staff s JOIN s.employements srv WHERE srv.id = :serviceId AND s.tenant.id = :tenantId AND s.isActive = true")
-    List<Staff> findActiveStaffByServiceIdAndTenantId(@Param("serviceId") java.util.UUID serviceId,
-                                                      @Param("tenantId") Long tenantId);
+    List<Staff> findActiveStaffByServiceIdAndTenantId(@Param("serviceId") UUID serviceId,
+                                                      @Param("tenantId") UUID tenantId);
 
     // Schedule-related queries
     @Query("SELECT DISTINCT s FROM Staff s LEFT JOIN FETCH s.schedules WHERE s.tenant.id = :tenantId AND s.isActive = true")
-    List<Staff> findActiveStaffWithSchedulesByTenantId(@Param("tenantId") Long tenantId);
+    List<Staff> findActiveStaffWithSchedulesByTenantId(@Param("tenantId") UUID tenantId);
 
     // Count queries
-    long countByTenantId(Long tenantId);
+    long countByTenantId(UUID tenantId);
 
-    long countByTenantIdAndIsActive(Long tenantId, Boolean isActive);
+    long countByTenantIdAndIsActive(UUID tenantId, Boolean isActive);
 
-    long countByTenantIdAndRole(Long tenantId, StaffRole role);
+    long countByTenantIdAndRole(UUID tenantId, StaffRole role);
 
-    List<Staff> findByUserId(java.util.UUID id);
+    List<Staff> findByUserId(UUID id);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
-    Optional<Staff> findByTenantIdAndUserId(Long tenantId, java.util.UUID userId);
+    Optional<Staff> findByTenantIdAndUserId(UUID tenantId, UUID userId);
 
 }

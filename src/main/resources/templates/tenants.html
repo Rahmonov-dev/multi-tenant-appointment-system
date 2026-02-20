@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Tenants - Appointment System', content=~{::section})}">
+
+<body>
+    <section>
+        <div class="page-header">
+            <h1 class="page-title">Bizning Hamkorlar</h1>
+            <p style="color: var(--text-muted)">Xizmat ko'rsatuvchi markazlar ro'yxati</p>
+        </div>
+
+        <div id="tenants-grid" class="grid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', async () => {
+                const grid = document.getElementById('tenants-grid');
+                try {
+                    const response = await fetch('/api/tenant/get-all?size=100');
+                    const result = await response.json();
+
+                    if (result.success && result.data) {
+                        grid.innerHTML = '';
+                        result.data.forEach(tenant => {
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.onclick = () => window.location.href = `/dashboard/tenant/${tenant.id}`;
+
+                            card.innerHTML = `
+                            <div class="card-header">
+                                <h3 class="card-title">${tenant.organizationName}</h3>
+                                <span class="badge badge-primary">${tenant.businessType}</span>
+                            </div>
+                            <div class="info-row">
+                                <i data-lucide="map-pin"></i>
+                                <span>${tenant.address}</span>
+                            </div>
+                            <div class="info-row">
+                                <i data-lucide="clock"></i>
+                                <span>${tenant.workingHoursStart.substring(0, 5)} - ${tenant.workingHoursEnd.substring(0, 5)}</span>
+                            </div>
+                            <div class="short-details">
+                                <div class="info-row">
+                                    <i data-lucide="mail"></i>
+                                    <span>${tenant.email}</span>
+                                </div>
+                                <div class="info-row">
+                                    <i data-lucide="phone"></i>
+                                    <span>${tenant.phone}</span>
+                                </div>
+                                <p style="font-size: 0.75rem; color: var(--primary); margin-top: 0.5rem; font-weight: 500;">
+                                    Batafsil ko'rish →
+                                </p>
+                            </div>
+                        `;
+                            grid.appendChild(card);
+                        });
+                        lucide.createIcons();
+                    } else {
+                        grid.innerHTML = '<p>Ma\'lumot topilmadi.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching tenants:', error);
+                    grid.innerHTML = '<p>Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.</p>';
+                }
+            });
+        </script>
+    </section>
+</body>
+
+</html>

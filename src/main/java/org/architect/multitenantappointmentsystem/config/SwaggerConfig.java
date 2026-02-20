@@ -30,35 +30,4 @@ public class SwaggerConfig {
                         new SecurityRequirement().addList("bearerAuth")
                 );
     }
-
-    @Bean
-    public OpenApiCustomizer tenantHeaderCustomizer() {
-        return openApi ->
-                openApi.getPaths().forEach((path, pathItem) -> {
-
-                    // Tenant ID kerak bo'lmagan endpointlar ro'yxati
-                    boolean skipTenantId =
-                                    path.contains("/api/auth") ||
-                                    path.contains("/swagger") ||
-                                    path.contains("/api/tenant/get-all") ||
-                                    path.contains("/api/tenant/{slug}/by-key/{tenantKey}") ||
-                                    path.contains("/api/tenant") ||
-                                    path.contains("/api-docs");
-
-
-                    if (!skipTenantId) {
-                        pathItem.readOperations().forEach(operation ->
-                                operation.addParametersItem(
-                                        new Parameter()
-                                                .in("header")
-                                                .required(true)
-                                                .name("X-Tenant-Id")
-                                                .description("Tenant ID (Get from login response)")
-                                                .schema(new StringSchema())
-                                                .example("1")  // ← Default qiymat
-                                )
-                        );
-                    }
-                });
-    }
 }

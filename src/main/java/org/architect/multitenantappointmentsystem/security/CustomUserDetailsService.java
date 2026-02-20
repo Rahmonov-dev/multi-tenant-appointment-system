@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,12 +51,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             );
         }
 
-        List<Long> tenantIds = staffRoles.stream()
+        List<UUID> tenantIds = staffRoles.stream()
                 .map(staff -> staff.getTenant().getId())
                 .distinct()
                 .toList();
 
-        List<java.util.UUID> staffIds = staffRoles.stream()
+        List<UUID> staffIds = staffRoles.stream()
                 .map(Staff::getId)
                 .toList();
 
@@ -78,7 +79,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public UserDetails loadUserByIdForJwt(java.util.UUID userId, String email) {
+    public UserDetails loadUserByIdForJwt(UUID userId, String email) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User topilmadi: " + userId));
 
@@ -98,12 +99,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             );
         }
 
-        List<Long> tenantIds = staffRoles.stream()
+        List<UUID> tenantIds = staffRoles.stream()
                 .map(staff -> staff.getTenant().getId())
                 .distinct()
                 .toList();
 
-        List<java.util.UUID> staffIds = staffRoles.stream()
+        List<UUID> staffIds = staffRoles.stream()
                 .map(Staff::getId)
                 .toList();
 

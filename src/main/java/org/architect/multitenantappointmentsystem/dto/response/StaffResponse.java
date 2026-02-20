@@ -4,12 +4,13 @@ import org.architect.multitenantappointmentsystem.entity.Staff;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record StaffResponse(
-        java.util.UUID id,
-        Long tenantId,
+        UUID id,
+        UUID tenantId,
         String tenantName,
-        java.util.UUID userId,
+        UUID userId,
         String userFullName,
         String role,
         String displayName,

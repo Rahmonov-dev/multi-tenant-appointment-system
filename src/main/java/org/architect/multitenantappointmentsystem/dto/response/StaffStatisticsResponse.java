@@ -1,7 +1,9 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
+import java.util.UUID;
+
 public record StaffStatisticsResponse(
-        Long tenantId,
+        UUID tenantId,
         Long totalStaff,
         Long activeStaff,
         Long inactiveStaff,

@@ -11,37 +11,38 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<Employement, java.util.UUID> {
 
-    boolean existsByNameAndTenantId(String name, Long tenantId);
-    boolean existsByNameAndTenantIdAndIdNot(String name, Long tenantId, java.util.UUID id);
+    boolean existsByNameAndTenantId(String name, UUID tenantId);
+    boolean existsByNameAndTenantIdAndIdNot(String name, UUID tenantId, UUID id);
 
-    List<Employement> findByTenantId(Long tenantId);
-    List<Employement> findByTenantIdAndIsActive(Long tenantId, Boolean isActive);
-    Page<Employement> findByTenantId(Long tenantId, Pageable pageable);
-    Page<Employement> findByTenantIdAndIsActive(Long tenantId, Boolean isActive, Pageable pageable);
+    List<Employement> findByTenantId(UUID tenantId);
+    List<Employement> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive);
+    Page<Employement> findByTenantId(UUID tenantId, Pageable pageable);
+    Page<Employement> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive, Pageable pageable);
 
-    List<Employement> findByTenantIdOrderByDisplayOrder(Long tenantId);
-    List<Employement> findByTenantIdAndIsActiveOrderByDisplayOrder(Long tenantId, Boolean isActive);
+    List<Employement> findByTenantIdOrderByDisplayOrder(UUID tenantId);
+    List<Employement> findByTenantIdAndIsActiveOrderByDisplayOrder(UUID tenantId, Boolean isActive);
 
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND s.price BETWEEN :minPrice AND :maxPrice")
-    List<Employement> findByPriceRange(@Param("tenantId") Long tenantId, @Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice);
+    List<Employement> findByPriceRange(@Param("tenantId") UUID tenantId, @Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice);
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND s.duration <= :maxDuration")
-    List<Employement> findByMaxDuration(@Param("tenantId") Long tenantId, @Param("maxDuration") Integer maxDuration);
+    List<Employement> findByMaxDuration(@Param("tenantId") UUID tenantId, @Param("maxDuration") Integer maxDuration);
 
-    List<Employement> findActiveServicesByStaffId(java.util.UUID staffId);
+    List<Employement> findActiveServicesByStaffId(UUID staffId);
 
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND " +
            "(LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    List<Employement> searchByKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
+    List<Employement> searchByKeyword(@Param("tenantId") UUID tenantId, @Param("keyword") String keyword);
 
     @Query("SELECT s FROM Employement s WHERE s.tenant.id = :tenantId AND s.isActive = true AND " +
            "(LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    List<Employement> searchActiveByKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
+    List<Employement> searchActiveByKeyword(@Param("tenantId") UUID tenantId, @Param("keyword") String keyword);
 
     @Query(value = "SELECT s.* FROM employements s " +
            "INNER JOIN appointments a ON s.id = a.service_id " +
@@ -49,8 +50,8 @@ public interface ServiceRepository extends JpaRepository<Employement, java.util.
            "GROUP BY s.id " +
            "ORDER BY COUNT(a.id) DESC " +
            "LIMIT :limit", nativeQuery = true)
-    List<Employement> findPopularServices(@Param("tenantId") Long tenantId, Pageable pageable);
+    List<Employement> findPopularServices(@Param("tenantId") UUID tenantId, Pageable pageable);
 
-    List<Employement> findByIdInAndTenantId(List<java.util.UUID> ids, Long tenantId);
-    Optional<Employement> findByIdAndTenantId(java.util.UUID id, Long tenantId);
+    List<Employement> findByIdInAndTenantId(List<UUID> ids, UUID tenantId);
+    Optional<Employement> findByIdAndTenantId(UUID id, UUID tenantId);
 }

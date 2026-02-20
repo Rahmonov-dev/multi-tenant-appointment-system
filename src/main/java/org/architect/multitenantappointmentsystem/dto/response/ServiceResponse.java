@@ -4,10 +4,11 @@ import org.architect.multitenantappointmentsystem.entity.Employement;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record ServiceResponse(
-        java.util.UUID id,
-        Long tenantId,
+        UUID id,
+        UUID tenantId,
         String tenantName,
         String name,
         String description,

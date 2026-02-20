@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Appointment management service interface
@@ -22,148 +23,148 @@ import java.util.List;
 public interface AppointmentService {
 
     // ==================== APPOINTMENT CRUD ====================
-    
+
     /**
      * Appointment yaratish (navbat olish)
      */
-    AppointmentResponse createAppointment(CreateAppointmentRequest request);
+    AppointmentResponse createAppointment(UUID tenantId, CreateAppointmentRequest request);
 
     /**
      * Appointment ma'lumotlarini olish (ID bo'yicha)
      */
-    AppointmentResponse getAppointmentById(java.util.UUID id);
+    AppointmentResponse getAppointmentById(UUID tenantId, UUID id);
 
     /**
      * Appointment yangilash
      */
-    AppointmentResponse updateAppointment(java.util.UUID id, UpdateAppointmentRequest request);
+    AppointmentResponse updateAppointment(UUID tenantId, UUID id, UpdateAppointmentRequest request);
 
     /**
      * Appointment vaqtini o'zgartirish
      */
-    AppointmentResponse rescheduleAppointment(java.util.UUID id, RescheduleAppointmentRequest request);
+    AppointmentResponse rescheduleAppointment(UUID tenantId, UUID id, RescheduleAppointmentRequest request);
 
     /**
      * Appointment bekor qilish
      */
-    AppointmentResponse cancelAppointment(java.util.UUID id, CancelAppointmentRequest request);
+    AppointmentResponse cancelAppointment(UUID tenantId, UUID id, CancelAppointmentRequest request);
 
     /**
      * Appointment tasdiqlash
      */
-    AppointmentResponse confirmAppointment(java.util.UUID id);
+    AppointmentResponse confirmAppointment(UUID tenantId, UUID id);
 
     /**
      * Appointment yakunlash
      */
-    AppointmentResponse completeAppointment(java.util.UUID id);
+    AppointmentResponse completeAppointment(UUID tenantId, UUID id);
 
     /**
      * Appointment "No Show" qilish
      */
-    AppointmentResponse markAsNoShow(java.util.UUID id);
+    AppointmentResponse markAsNoShow(UUID tenantId, UUID id);
 
     // ==================== AVAILABILITY CHECKING ====================
 
     /**
      * Bo'sh vaqtlarni olish
      */
-    List<AvailableSlotResponse> getAvailableSlots(java.util.UUID staffId, LocalDate date, java.util.UUID serviceId);
+    List<AvailableSlotResponse> getAvailableSlots(UUID tenantId, UUID staffId, LocalDate date, UUID serviceId);
 
     /**
      * Vaqt bo'shligini tekshirish
      */
-    boolean isSlotAvailable(java.util.UUID staffId, LocalDate date, LocalTime time, Integer duration);
+    boolean isSlotAvailable(UUID tenantId, UUID staffId, LocalDate date, LocalTime time, Integer duration);
 
     // ==================== QUERIES ====================
 
     /**
      * Tenant bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByTenant( LocalDate date);
+    List<AppointmentResponse> getAppointmentsByTenant(UUID tenantId, LocalDate date);
 
     /**
      * Staff bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByStaff(java.util.UUID staffId, LocalDate date);
+    List<AppointmentResponse> getAppointmentsByStaff(UUID tenantId, UUID staffId, LocalDate date);
 
     /**
      * Employement bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByService(java.util.UUID serviceId, LocalDate date);
+    List<AppointmentResponse> getAppointmentsByService(UUID tenantId, UUID serviceId, LocalDate date);
 
     /**
      * Mijoz telefon raqami bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByCustomerPhone(String phone);
+    List<AppointmentResponse> getAppointmentsByCustomerPhone(UUID tenantId, String phone);
 
     /**
      * Mijoz email bo'yicha appointmentlarni olish
      */
-    List<AppointmentResponse> getAppointmentsByCustomerEmail(String email);
+    List<AppointmentResponse> getAppointmentsByCustomerEmail(UUID tenantId, String email);
 
     /**
      * Bugungi appointmentlar
      */
-    List<AppointmentResponse> getTodayAppointments();
+    List<AppointmentResponse> getTodayAppointments(UUID tenantId);
 
     /**
      * Kelajakdagi appointmentlar
      */
-    List<AppointmentResponse> getUpcomingAppointments( Integer limit);
+    List<AppointmentResponse> getUpcomingAppointments(UUID tenantId, Integer limit);
 
     /**
      * Kelajakdagi appointmentlar (mijoz telefoni bo'yicha)
      */
-    List<AppointmentResponse> getUpcomingAppointmentsByPhone(String phone);
+    List<AppointmentResponse> getUpcomingAppointmentsByPhone(UUID tenantId, String phone);
 
     /**
      * O'tmish appointmentlar (mijoz telefoni bo'yicha)
      */
-    List<AppointmentResponse> getPastAppointmentsByPhone(String phone, Integer limit);
+    List<AppointmentResponse> getPastAppointmentsByPhone(UUID tenantId, String phone, Integer limit);
 
     /**
      * Status bo'yicha appointmentlar
      */
-    List<AppointmentResponse> getAppointmentsByStatus( AppointmentStatus status);
+    List<AppointmentResponse> getAppointmentsByStatus(UUID tenantId, AppointmentStatus status);
 
     /**
      * Pagination bilan appointmentlar
      */
-    Page<AppointmentResponse> getAppointmentsPaginated( Boolean activeOnly, Pageable pageable);
+    Page<AppointmentResponse> getAppointmentsPaginated(UUID tenantId, Boolean activeOnly, Pageable pageable);
 
     /**
      * Sana oralig'i bo'yicha appointmentlar
      */
-    List<AppointmentResponse> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate);
+    List<AppointmentResponse> getAppointmentsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate);
 
     /**
      * Staff bo'yicha sana oralig'ida appointmentlar
      */
     List<AppointmentResponse> getStaffAppointmentsByDateRange(
-            java.util.UUID staffId, LocalDate startDate, LocalDate endDate);
+            UUID tenantId, UUID staffId, LocalDate startDate, LocalDate endDate);
 
     // ==================== CALENDAR ====================
 
     /**
      * Calendar view uchun ma'lumotlar
      */
-    List<AppointmentCalendarResponse> getCalendarData(LocalDate startDate, LocalDate endDate);
+    List<AppointmentCalendarResponse> getCalendarData(UUID tenantId, LocalDate startDate, LocalDate endDate);
 
     // ==================== STATISTICS ====================
 
     /**
      * Tenant bo'yicha statistika
      */
-    AppointmentStatisticsResponse getStatistics();
+    AppointmentStatisticsResponse getStatistics(UUID tenantId);
 
     /**
      * Staff bo'yicha statistika
      */
-    AppointmentStatisticsResponse getStaffStatistics(java.util.UUID staffId);
+    AppointmentStatisticsResponse getStaffStatistics(UUID tenantId, UUID staffId);
 
     /**
      * Sana oralig'i bo'yicha statistika
      */
-    AppointmentStatisticsResponse getStatisticsByDateRange(LocalDate startDate, LocalDate endDate);
+    AppointmentStatisticsResponse getStatisticsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate);
 }

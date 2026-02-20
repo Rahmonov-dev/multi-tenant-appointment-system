@@ -1,9 +1,10 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record ServiceStatisticsResponse(
-        Long tenantId,
+        UUID tenantId,
         Long totalServices,
         Long activeServices,
         Long inactiveServices,

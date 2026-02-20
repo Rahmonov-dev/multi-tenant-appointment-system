@@ -4,10 +4,10 @@ import org.architect.multitenantappointmentsystem.entity.Tenant;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record TenantResponse(
-        Long id,
-        String tenantKey,
+        UUID id,
         String slug,
         String businessType,
         String organizationName,
@@ -26,7 +26,6 @@ public record TenantResponse(
     public static TenantResponse from(Tenant tenant) {
         return new TenantResponse(
                 tenant.getId(),
-                tenant.getTenantKey(),
                 tenant.getSlug(),
                 tenant.getBusinessType().name(),
                 tenant.getOrganizationName(),

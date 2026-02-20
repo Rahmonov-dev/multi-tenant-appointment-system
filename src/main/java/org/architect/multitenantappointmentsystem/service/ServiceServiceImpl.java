@@ -16,7 +16,6 @@ import org.architect.multitenantappointmentsystem.exception.NotFoundException;
 import org.architect.multitenantappointmentsystem.repository.ServiceRepository;
 import org.architect.multitenantappointmentsystem.repository.StaffRepository;
 import org.architect.multitenantappointmentsystem.repository.TenantRepository;
-import org.architect.multitenantappointmentsystem.security.TenantContext;
 import org.architect.multitenantappointmentsystem.service.interfaces.ServiceService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.UUID;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -39,11 +39,10 @@ public class ServiceServiceImpl implements ServiceService {
      * @param request
      */
     @Override
-    public ServiceResponse createService(CreateServiceRequest request) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse createService(UUID tenantId, CreateServiceRequest request) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
+            throw new BusinessException("Tenant ID talab qilinadi");
         }
 
         Tenant tenant = tenantRepository.findById(tenantId)
@@ -74,10 +73,9 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse getServiceById(java.util.UUID id) {
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse getServiceById(UUID tenantId, UUID id) {
         if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
+            throw new BusinessException("Tenant ID talab qilinadi");
         }
         if (id == null) {
             throw new BusinessException("Service ID talab qilinadi");
@@ -95,10 +93,9 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceDetailResponse getServiceDetailById(java.util.UUID id) {
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceDetailResponse getServiceDetailById(UUID tenantId, UUID id) {
         if (tenantId == null) {
-            throw new BusinessException("Tenant context topilmadi");
+            throw new BusinessException("Tenant ID talab qilinadi");
         }
         if (id == null) {
             throw new BusinessException("Service ID talab qilinadi");
@@ -117,9 +114,8 @@ public class ServiceServiceImpl implements ServiceService {
      * @param request
      */
     @Override
-    public ServiceResponse updateService(java.util.UUID id, UpdateServiceRequest request) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse updateService(UUID tenantId, UUID id, UpdateServiceRequest request) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + id));
@@ -160,9 +156,8 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public void deleteService(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public void deleteService(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + id));
@@ -176,9 +171,8 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse activateService(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse activateService(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + id));
@@ -194,9 +188,8 @@ public class ServiceServiceImpl implements ServiceService {
      * @param id
      */
     @Override
-    public ServiceResponse deactivateService(java.util.UUID id) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse deactivateService(UUID tenantId, UUID id) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + id));
@@ -210,9 +203,7 @@ public class ServiceServiceImpl implements ServiceService {
      * Tenant bo'yicha barcha servicelarni olish
      */
     @Override
-    public List<ServiceResponse> getAllServicesByTenant() {
-        Long tenantId = TenantContext.getTenantId();
-
+    public List<ServiceResponse> getAllServicesByTenant(UUID tenantId) {
         return serviceRepository.findByTenantId(tenantId)
                 .stream()
                 .map(ServiceResponse::fromEntity)
@@ -223,8 +214,7 @@ public class ServiceServiceImpl implements ServiceService {
      * Tenant bo'yicha aktiv servicelarni olish
      */
     @Override
-    public List<ServiceResponse> getActiveServicesByTenant() {
-        Long tenantId = TenantContext.getTenantId();
+    public List<ServiceResponse> getActiveServicesByTenant(UUID tenantId) {
         return serviceRepository.findByTenantIdAndIsActive(tenantId, true)
                 .stream()
                 .map(ServiceResponse::fromEntity)
@@ -236,8 +226,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param activeOnly
      */
     @Override
-    public List<ServiceResponse> getServicesByTenantOrdered( Boolean activeOnly) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<ServiceResponse> getServicesByTenantOrdered(UUID tenantId, Boolean activeOnly) {
         List<Employement> employements = activeOnly != null && activeOnly
                 ? serviceRepository.findByTenantIdAndIsActiveOrderByDisplayOrder(tenantId, true)
                 : serviceRepository.findByTenantIdOrderByDisplayOrder(tenantId);
@@ -253,8 +242,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param pageable
      */
     @Override
-    public Page<ServiceResponse> getServicesByTenantPaginated(Boolean activeOnly, Pageable pageable) {
-        Long tenantId = TenantContext.getTenantId();
+    public Page<ServiceResponse> getServicesByTenantPaginated(UUID tenantId, Boolean activeOnly, Pageable pageable) {
 
         Page<Employement> servicePage = activeOnly != null && activeOnly
                 ? serviceRepository.findByTenantIdAndIsActive(tenantId, true, pageable)
@@ -269,8 +257,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param activeOnly
      */
     @Override
-    public List<ServiceResponse> searchServices( String keyword, Boolean activeOnly) {
-        Long tenantId = TenantContext.getTenantId();
+    public List<ServiceResponse> searchServices(UUID tenantId, String keyword, Boolean activeOnly) {
         List<Employement> employements = activeOnly != null && activeOnly
                 ? serviceRepository.searchActiveByKeyword(tenantId, keyword)
                 : serviceRepository.searchByKeyword(tenantId, keyword);
@@ -286,9 +273,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param maxPrice
      */
     @Override
-    public List<ServiceResponse> getServicesByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public List<ServiceResponse> getServicesByPriceRange(UUID tenantId, BigDecimal minPrice, BigDecimal maxPrice) {
         return serviceRepository.findByPriceRange(tenantId, minPrice, maxPrice)
                 .stream()
                 .map(ServiceResponse::fromEntity)
@@ -301,9 +286,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param maxDuration
      */
     @Override
-    public List<ServiceResponse> getServicesByMaxDuration(Integer maxDuration) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public List<ServiceResponse> getServicesByMaxDuration(UUID tenantId, Integer maxDuration) {
         return serviceRepository.findByMaxDuration(tenantId, maxDuration)
                 .stream()
                 .map(ServiceResponse::fromEntity)
@@ -316,15 +299,9 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffId
      */
     @Override
-    public List<ServiceResponse> getServicesByStaff(java.util.UUID staffId) {
-        Long tenantId = TenantContext.getTenantId();
-
-        Staff staff = staffRepository.findById(staffId)
+    public List<ServiceResponse> getServicesByStaff(UUID tenantId, UUID staffId) {
+        Staff staff = staffRepository.findByIdAndTenantId(staffId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
-
-        if (!staff.getTenant().getId().equals(tenantId)) {
-            throw new BusinessException("Staff boshqa tenant ga tegishli");
-        }
 
         return serviceRepository.findActiveServicesByStaffId(staffId)
                 .stream()
@@ -337,9 +314,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param limit
      */
     @Override
-    public List<ServiceResponse> getPopularServices( Integer limit) {
-        Long tenantId = TenantContext.getTenantId();
-
+    public List<ServiceResponse> getPopularServices(UUID tenantId, Integer limit) {
         int size = limit != null && limit > 0 ? limit : 10;
         return serviceRepository.findPopularServices(tenantId, PageRequest.of(0, size))
                 .stream()
@@ -354,18 +329,13 @@ public class ServiceServiceImpl implements ServiceService {
      * @param staffId
      */
     @Override
-    public ServiceResponse assignStaffToService(java.util.UUID serviceId, java.util.UUID staffId) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse assignStaffToService(UUID tenantId, UUID serviceId, UUID staffId) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + serviceId));
-        Staff staff = staffRepository.findById(staffId)
+        Staff staff = staffRepository.findByIdAndTenantId(staffId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
-
-        if (!staff.getTenant().getId().equals(tenantId)) {
-            throw new BusinessException("Staff boshqa tenant ga tegishli");
-        }
 
         staff.addService(employement);
         staffRepository.save(staff);
@@ -373,25 +343,14 @@ public class ServiceServiceImpl implements ServiceService {
         return ServiceResponse.fromEntity(employement);
     }
 
-    /**
-     * Employement dan staff olib tashlash
-     *
-     * @param serviceId
-     * @param staffId
-     */
     @Override
-    public ServiceResponse removeStaffFromService(java.util.UUID serviceId, java.util.UUID staffId) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse removeStaffFromService(UUID tenantId, UUID serviceId, UUID staffId) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + serviceId));
-        Staff staff = staffRepository.findById(staffId)
+        Staff staff = staffRepository.findByIdAndTenantId(staffId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + staffId));
-
-        if (!staff.getTenant().getId().equals(tenantId)) {
-            throw new BusinessException("Staff boshqa tenant ga tegishli");
-        }
 
         staff.getEmployements().remove(employement);
         employement.getStaff().remove(staff);
@@ -400,16 +359,9 @@ public class ServiceServiceImpl implements ServiceService {
         return ServiceResponse.fromEntity(employement);
     }
 
-    /**
-     * Employement ga bir nechta staff biriktirish
-     *
-     * @param serviceId
-     * @param staffIds
-     */
     @Override
-    public ServiceResponse assignStaffsToService(java.util.UUID serviceId, List<java.util.UUID> staffIds) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse assignStaffsToService(UUID tenantId, UUID serviceId, List<UUID> staffIds) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + serviceId));
@@ -419,9 +371,8 @@ public class ServiceServiceImpl implements ServiceService {
             throw new NotFoundException("Ba'zi staff topilmadi");
         }
 
-        Long serviceTenantId = employement.getTenant().getId();
         boolean allSameTenant = staffList.stream()
-                .allMatch(staff -> staff.getTenant().getId().equals(serviceTenantId));
+                .allMatch(staff -> staff.getTenant().getId().equals(tenantId));
         if (!allSameTenant) {
             throw new BusinessException("Ba'zi staff boshqa tenant ga tegishli");
         }
@@ -432,15 +383,9 @@ public class ServiceServiceImpl implements ServiceService {
         return ServiceResponse.fromEntity(employement);
     }
 
-    /**
-     * Employement dan barcha stafflarni olib tashlash
-     *
-     * @param serviceId
-     */
     @Override
-    public ServiceResponse removeAllStaffFromService(java.util.UUID serviceId) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse removeAllStaffFromService(UUID tenantId, UUID serviceId) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(serviceId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + serviceId));
@@ -455,16 +400,9 @@ public class ServiceServiceImpl implements ServiceService {
         return ServiceResponse.fromEntity(employement);
     }
 
-    /**
-     * Employement display order ni yangilash
-     *
-     * @param id
-     * @param displayOrder
-     */
     @Override
-    public ServiceResponse updateDisplayOrder(java.util.UUID id, Integer displayOrder) {
-        currentStaffService.requireOwnerOrManager();
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceResponse updateDisplayOrder(UUID tenantId, UUID id, Integer displayOrder) {
+        currentStaffService.requireOwnerOrManager(tenantId);
 
         Employement employement = serviceRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Employement topilmadi: " + id));
@@ -474,19 +412,13 @@ public class ServiceServiceImpl implements ServiceService {
         return ServiceResponse.fromEntity(employement);
     }
 
-    /**
-     * Bir nechta service display order ni yangilash
-     *
-     * @param serviceIds
-     */
     @Override
-    public void updateMultipleDisplayOrders(List<java.util.UUID> serviceIds) {
-        currentStaffService.requireOwnerOrManager();
+    public void updateMultipleDisplayOrders(UUID tenantId, List<UUID> serviceIds) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         if (serviceIds == null || serviceIds.isEmpty()) {
             return;
         }
 
-        Long tenantId = TenantContext.getTenantId();
         List<Employement> employements = serviceRepository.findByIdInAndTenantId(serviceIds, tenantId);
 
         if (employements.size() != serviceIds.size()) {
@@ -494,7 +426,7 @@ public class ServiceServiceImpl implements ServiceService {
         }
 
         for (int i = 0; i < serviceIds.size(); i++) {
-            java.util.UUID serviceId = serviceIds.get(i);
+            UUID serviceId = serviceIds.get(i);
             int finalI = i;
             employements.stream()
                     .filter(service -> service.getId().equals(serviceId))
@@ -509,8 +441,7 @@ public class ServiceServiceImpl implements ServiceService {
      *
      */
     @Override
-    public ServiceStatisticsResponse getServiceStatistics() {
-        Long tenantId = TenantContext.getTenantId();
+    public ServiceStatisticsResponse getServiceStatistics(UUID tenantId) {
         List<Employement> employements = serviceRepository.findByTenantId(tenantId);
         long totalServices = employements.size();
         long activeServices = employements.stream().filter(Employement::getIsActive).count();

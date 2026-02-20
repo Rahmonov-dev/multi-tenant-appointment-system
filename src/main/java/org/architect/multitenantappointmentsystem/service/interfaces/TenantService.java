@@ -6,12 +6,13 @@ import org.architect.multitenantappointmentsystem.dto.request.UpdateTenantReques
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface TenantService {
     TenantResponse createTenant(CreateTenantRequest request);
-    TenantResponse getTenantById(Long id);
-    TenantResponse getTenantByKey(String tenantKey);
+    TenantResponse getTenantById(UUID id);
     TenantResponse getTenantBySlug(String slug);
-    TenantResponse updateTenant(Long id, UpdateTenantRequest request);
-    void deleteTenant(Long id);
+    TenantResponse updateTenant(UUID id, UpdateTenantRequest request);
+    void deleteTenant(UUID id);
     Page<TenantResponse> getAllTenants(Pageable pageable);
 }

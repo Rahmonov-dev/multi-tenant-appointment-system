@@ -4,12 +4,12 @@ A professional, high-performance backend system built with Spring Boot for manag
 
 ## 🚀 Key Features
 
-- **Multi-Tenancy**: Data isolation at the database level using `tenant_id` and unique `slug` URL routing.
+- **Multi-Tenancy**: Strict data isolation using explicit `tenantId` in URL paths (`/api/{tenantId}/...`).
 - **Dynamic Scheduling**: Flexible staff working hours with availability validation.
 - **Staff Management**: Role-based access control (Owner, Manager, Staff) for organizational hierarchy.
 - **Service Catalog**: Customizable service lists (employments) with duration and pricing.
 - **Appointment Lifecycle**: Complete flow from booking/pending to confirmation, completion, or cancellation.
-- **Secure Authentication**: JWT-based security with UUID-based user identification.
+- **Secure Authentication**: JWT-based security with full UUID integration (Users, Tenants, Resources).
 
 ## 🏗️ System Architecture
 
@@ -33,7 +33,7 @@ erDiagram
     STAFF ||--o{ APPOINTMENT : "assigned_to"
 
     TENANT {
-        Long id PK
+        UUID id PK
         String slug UK
         String organization_name
     }
@@ -67,7 +67,7 @@ erDiagram
 ## 🚦 Getting Started
 
 ### Prerequisites
-- JDK 21+
+- JDK 25+
 - PostgreSQL 15+
 
 ### Installation

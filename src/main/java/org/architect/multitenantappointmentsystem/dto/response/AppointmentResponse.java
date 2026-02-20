@@ -7,10 +7,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.text.DecimalFormat;
+import java.util.UUID;
 
 public record AppointmentResponse(
-        java.util.UUID id,
-        Long tenantId,
+        UUID id,
+        UUID tenantId,
         String tenantName,
         java.util.UUID staffId,
         String staffName,

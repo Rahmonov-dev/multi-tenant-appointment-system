@@ -1,12 +1,10 @@
 package org.architect.multitenantappointmentsystem.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jdk.dynalink.linker.LinkerServices;
 import lombok.Getter;
 import org.architect.multitenantappointmentsystem.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,8 +18,8 @@ public class AuthUser implements UserDetails {
     @JsonIgnore
     private final String passwordHash;
 
-    private final List<Long> tenantIds; // Bir nechta tenant bo‘lsa
-    private final List<java.util.UUID> staffIds;  // Bir nechta staff id
+    private final List<UUID> tenantIds; // Bir nechta tenant bo‘lsa
+    private final List<UUID> staffIds;  // Bir nechta staff id
     private final List<String> roles;   // Bir nechta role
 
     private final Collection<? extends GrantedAuthority> authorities;
@@ -30,7 +28,7 @@ public class AuthUser implements UserDetails {
             UUID userId,
             String email,
             String passwordHash,
-            List<Long> tenantIds,
+            List<UUID> tenantIds,
             List<UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
@@ -46,8 +44,8 @@ public class AuthUser implements UserDetails {
 
     public static AuthUser create(
             User user,
-            List<Long> tenantIds,
-            List<java.util.UUID> staffIds,
+            List<UUID> tenantIds,
+            List<UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {
@@ -63,10 +61,10 @@ public class AuthUser implements UserDetails {
     }
 
     public static AuthUser createWithoutPassword(
-            java.util.UUID userId,
+            UUID userId,
             String email,
-            List<Long> tenantIds,
-            List<java.util.UUID> staffIds,
+            List<UUID> tenantIds,
+            List<UUID> staffIds,
             List<String> roles,
             Collection<? extends GrantedAuthority> authorities
     ) {

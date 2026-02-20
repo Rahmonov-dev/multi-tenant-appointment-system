@@ -1,9 +1,10 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record AppointmentStatisticsResponse(
-        Long tenantId,
+        UUID tenantId,
         Long totalAppointments,
         Long pendingAppointments,
         Long confirmedAppointments,
@@ -19,7 +20,7 @@ public record AppointmentStatisticsResponse(
 ) {
     
     public static AppointmentStatisticsResponse fromEntity(
-            Long tenantId,
+            UUID tenantId,
             Long totalAppointments,
             Long pendingAppointments,
             Long confirmedAppointments,

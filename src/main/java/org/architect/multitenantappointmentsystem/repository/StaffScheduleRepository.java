@@ -10,55 +10,56 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface StaffScheduleRepository extends JpaRepository<StaffSchedule, java.util.UUID> {
 
     // Basic queries
-    List<StaffSchedule> findByStaffId(java.util.UUID staffId);
+    List<StaffSchedule> findByStaffId(UUID staffId);
 
-    Optional<StaffSchedule> findByStaffIdAndDayOfWeek(java.util.UUID staffId, Integer dayOfWeek);
+    Optional<StaffSchedule> findByStaffIdAndDayOfWeek(UUID staffId, Integer dayOfWeek);
 
-    List<StaffSchedule> findByStaffIdAndIsAvailable(java.util.UUID staffId, Boolean isAvailable);
+    List<StaffSchedule> findByStaffIdAndIsAvailable(UUID staffId, Boolean isAvailable);
 
     // Tenant-related queries
     @Query("SELECT ss FROM StaffSchedule ss WHERE ss.staff.tenant.id = :tenantId")
-    List<StaffSchedule> findByTenantId(@Param("tenantId") Long tenantId);
+    List<StaffSchedule> findByTenantId(@Param("tenantId") UUID tenantId);
 
     @Query("SELECT ss FROM StaffSchedule ss WHERE ss.staff.tenant.id = :tenantId AND ss.dayOfWeek = :dayOfWeek")
-    List<StaffSchedule> findByTenantIdAndDayOfWeek(@Param("tenantId") Long tenantId, @Param("dayOfWeek") Integer dayOfWeek);
+    List<StaffSchedule> findByTenantIdAndDayOfWeek(@Param("tenantId") UUID tenantId, @Param("dayOfWeek") Integer dayOfWeek);
 
     // Available schedules
     @Query("SELECT ss FROM StaffSchedule ss WHERE ss.staff.id = :staffId AND ss.dayOfWeek = :dayOfWeek AND ss.isAvailable = true")
-    Optional<StaffSchedule> findAvailableSchedule(@Param("staffId") java.util.UUID staffId, @Param("dayOfWeek") Integer dayOfWeek);
+    Optional<StaffSchedule> findAvailableSchedule(@Param("staffId") UUID staffId, @Param("dayOfWeek") Integer dayOfWeek);
 
     @Query("SELECT ss FROM StaffSchedule ss WHERE ss.staff.tenant.id = :tenantId AND ss.isAvailable = true ORDER BY ss.dayOfWeek")
-    List<StaffSchedule> findAllAvailableSchedulesByTenantId(@Param("tenantId") Long tenantId);
+    List<StaffSchedule> findAllAvailableSchedulesByTenantId(@Param("tenantId") UUID tenantId);
 
     // Working time validation
     @Query("SELECT CASE WHEN COUNT(ss) > 0 THEN true ELSE false END FROM StaffSchedule ss " +
             "WHERE ss.staff.id = :staffId AND ss.dayOfWeek = :dayOfWeek AND ss.isAvailable = true " +
             "AND ss.startTime <= :time AND ss.endTime > :time")
-    boolean isStaffWorkingAtTime(@Param("staffId") java.util.UUID staffId,
+    boolean isStaffWorkingAtTime(@Param("staffId") UUID staffId,
                                  @Param("dayOfWeek") Integer dayOfWeek,
                                  @Param("time") LocalTime time);
 
     // Delete/cleanup
-    void deleteByStaffId(java.util.UUID staffId);
+    void deleteByStaffId(UUID staffId);
 
-    boolean existsByStaffIdAndDayOfWeek(java.util.UUID staffId, Integer dayOfWeek);
+    boolean existsByStaffIdAndDayOfWeek(UUID staffId, Integer dayOfWeek);
 
-    Optional<StaffSchedule> findByStaffIdAndDayOfWeekAndStaffTenantId(java.util.UUID staffId, Integer dayOfWeek, Long tenantId);
+    Optional<StaffSchedule> findByStaffIdAndDayOfWeekAndStaffTenantId(UUID staffId, Integer dayOfWeek, UUID tenantId);
 
-    List<StaffSchedule> findByStaffTenantId(Long tenantId);
+    List<StaffSchedule> findByStaffTenantId(UUID tenantId);
 
-    long countByStaffTenantIdAndIsAvailableTrue(Long tenantId);
+    long countByStaffTenantIdAndIsAvailableTrue(UUID tenantId);
 
-    long countByStaffTenantId(Long tenantId);
+    long countByStaffTenantId(UUID tenantId);
     Optional<StaffSchedule> findByStaffIdAndDayOfWeekAndStaff_TenantId(
-            java.util.UUID staffId,
+            UUID staffId,
             Integer dayOfWeek,
-            Long tenantId
+            UUID tenantId
     );
 
 }
