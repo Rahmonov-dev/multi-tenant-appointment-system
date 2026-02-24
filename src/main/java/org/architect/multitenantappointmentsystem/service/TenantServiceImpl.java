@@ -167,4 +167,13 @@ public class TenantServiceImpl implements TenantService {
 
         return new PageImpl<>(activeTenants, pageable, tenants.getTotalElements());
     }
+
+    @Override
+    public Page<TenantResponse> searchTenants(String q, Pageable pageable) {
+        if (q == null || q.isBlank()) {
+            return getAllTenants(pageable);
+        }
+        return tenantRepository.searchActiveTenants(q.trim(), pageable)
+                .map(TenantResponse::from);
+    }
 }

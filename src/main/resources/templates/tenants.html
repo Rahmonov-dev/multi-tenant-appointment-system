@@ -6,6 +6,15 @@
         <div class="page-header">
             <h1 class="page-title">Bizning Hamkorlar</h1>
             <p style="color: var(--text-muted)">Xizmat ko'rsatuvchi markazlar ro'yxati</p>
+
+            <div style="margin-top: 1rem; display:flex; gap: 0.75rem; align-items:center;">
+                <input id="search" class="input" placeholder="Qidirish: salon nomi, manzil, turi..."
+                    style="max-width: 520px;">
+                <button class="btn-sm" onclick="resetSearch()"
+                    style="background: transparent; color: var(--text-main); border: 1px solid var(--border)">Tozalash</button>
+            </div>
+
+            <div id="page-error" class="error-box"></div>
         </div>
 
         <div id="tenants-grid" class="grid">
@@ -15,56 +24,83 @@
         </div>
 
         <script th:inline="javascript">
-            document.addEventListener('DOMContentLoaded', async () => {
+            let searchTimeout = null;
+
+            function resetSearch() {
+                const s = document.getElementById('search');
+                s.value = '';
+                loadTenants('');
+            }
+
+            function renderTenants(list) {
                 const grid = document.getElementById('tenants-grid');
+                if (!list || list.length === 0) {
+                    grid.innerHTML = `<div class="empty">Hech narsa topilmadi.</div>`;
+                    return;
+                }
+
+                grid.innerHTML = '';
+                list.forEach(tenant => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => window.location.href = `/dashboard/tenant/${tenant.slug}`;
+
+                    const start = (tenant.workingHoursStart || '').substring(0, 5) || '--:--';
+                    const end = (tenant.workingHoursEnd || '').substring(0, 5) || '--:--';
+
+                    card.innerHTML = `
+            <div class="card-header">
+              <h3 class="card-title">${tenant.organizationName || 'Nomsiz'}</h3>
+              <span class="badge badge-primary">${tenant.businessType || '-'}</span>
+            </div>
+            <div class="info-row"><i data-lucide="map-pin"></i><span>${tenant.address || '-'}</span></div>
+            <div class="info-row"><i data-lucide="clock"></i><span>${start} - ${end}</span></div>
+            <div class="short-details">
+              <div class="info-row"><i data-lucide="mail"></i><span>${tenant.email || '-'}</span></div>
+              <div class="info-row"><i data-lucide="phone"></i><span>${tenant.phone || '-'}</span></div>
+              <p style="font-size: 0.75rem; color: var(--primary); margin-top: 0.5rem; font-weight: 500;">
+                Batafsil ko'rish →
+              </p>
+            </div>
+          `;
+                    grid.appendChild(card);
+                });
+
+                lucide.createIcons();
+            }
+
+            async function loadTenants(q) {
+                clearError('page-error');
+                const grid = document.getElementById('tenants-grid');
+                grid.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+
                 try {
-                    const response = await fetch('/api/tenant/get-all?size=100');
-                    const result = await response.json();
-
-                    if (result.success && result.data) {
-                        grid.innerHTML = '';
-                        result.data.forEach(tenant => {
-                            const card = document.createElement('div');
-                            card.className = 'card';
-                            card.onclick = () => window.location.href = `/dashboard/tenant/${tenant.id}`;
-
-                            card.innerHTML = `
-                            <div class="card-header">
-                                <h3 class="card-title">${tenant.organizationName}</h3>
-                                <span class="badge badge-primary">${tenant.businessType}</span>
-                            </div>
-                            <div class="info-row">
-                                <i data-lucide="map-pin"></i>
-                                <span>${tenant.address}</span>
-                            </div>
-                            <div class="info-row">
-                                <i data-lucide="clock"></i>
-                                <span>${tenant.workingHoursStart.substring(0, 5)} - ${tenant.workingHoursEnd.substring(0, 5)}</span>
-                            </div>
-                            <div class="short-details">
-                                <div class="info-row">
-                                    <i data-lucide="mail"></i>
-                                    <span>${tenant.email}</span>
-                                </div>
-                                <div class="info-row">
-                                    <i data-lucide="phone"></i>
-                                    <span>${tenant.phone}</span>
-                                </div>
-                                <p style="font-size: 0.75rem; color: var(--primary); margin-top: 0.5rem; font-weight: 500;">
-                                    Batafsil ko'rish →
-                                </p>
-                            </div>
-                        `;
-                            grid.appendChild(card);
-                        });
-                        lucide.createIcons();
+                    let url;
+                    if (q && q.trim()) {
+                        url = `/api/tenant/search?q=${encodeURIComponent(q.trim())}&size=50`;
                     } else {
-                        grid.innerHTML = '<p>Ma\'lumot topilmadi.</p>';
+                        url = '/api/tenant/get-all?size=100';
                     }
+
+                    const result = await api(url, { method: 'GET' });
+                    // Backend returns Page (has 'content' field) or list
+                    const items = result.data?.content ?? result.data ?? [];
+                    renderTenants(items);
                 } catch (error) {
                     console.error('Error fetching tenants:', error);
-                    grid.innerHTML = '<p>Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.</p>';
+                    grid.innerHTML = '';
+                    renderError('page-error', error.message || 'Xatolik yuz berdi. Qaytadan urinib ko\'ring.');
                 }
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                loadTenants('');
+
+                document.getElementById('search').addEventListener('input', (e) => {
+                    const q = e.target.value;
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => loadTenants(q), 350);
+                });
             });
         </script>
     </section>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Kirish - Appointment System', content=~{::section})}">
+
+<body>
+    <section>
+        <div class="card" style="max-width: 480px; margin: 4rem auto; cursor: default;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <i data-lucide="log-in" style="width:40px;height:40px;color:var(--primary);margin-bottom:0.75rem;"></i>
+                <h2 class="page-title" style="margin:0;">Tizimga kirish</h2>
+                <p style="color:var(--text-muted);margin-top:0.4rem;font-size:0.9rem;">Hisobingizga kiring</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="label">Email</label>
+                    <input type="email" id="email" class="input" required placeholder="example@mail.com"
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Parol</label>
+                    <input type="password" id="password" class="input" required placeholder="••••••••"
+                        autocomplete="current-password">
+                </div>
+
+                <div id="form-error" class="error-box"></div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="login-btn">
+                    Kirish
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
+                Hisob yo'qmi? <a href="/dashboard/register" style="color: var(--primary); font-weight: 500;">Ro'yxatdan
+                    o'tish</a>
+            </p>
+        </div>
+
+        <script th:inline="javascript">
+            // If already logged in, redirect
+            if (localStorage.getItem('token')) {
+                const params = new URLSearchParams(window.location.search);
+                const ret = params.get('returnUrl');
+                window.location.href = ret ? decodeURIComponent(ret) : '/dashboard/tenants';
+            }
+
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('form-error');
+
+                const btn = document.getElementById('login-btn');
+                btn.disabled = true;
+                btn.textContent = 'Yuklanmoqda...';
+
+                const payload = {
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value
+                };
+
+                try {
+                    const result = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await result.json();
+
+                    if (!result.ok || data.success === false) {
+                        throw new Error(data.message || "Login xatosi");
+                    }
+
+                    // Save token to localStorage
+                    const token = data.data?.token;
+                    if (!token) throw new Error("Token olinmadi");
+
+                    localStorage.setItem('token', token);
+
+                    toast('Muvaffaqiyatli kirdingiz!', 'success');
+
+                    // Redirect to returnUrl or home
+                    const params = new URLSearchParams(window.location.search);
+                    const ret = params.get('returnUrl');
+                    setTimeout(() => {
+                        window.location.href = ret ? decodeURIComponent(ret) : '/dashboard/tenants';
+                    }, 300);
+
+                } catch (err) {
+                    renderError('form-error', err.message || "Email yoki parol noto'g'ri");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Kirish';
+                }
+            });
+        </script>
+    </section>
+</body>
+
+</html>

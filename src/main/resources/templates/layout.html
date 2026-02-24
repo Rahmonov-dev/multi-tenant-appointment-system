@@ -17,15 +17,158 @@
                 <i data-lucide="calendar"></i>
                 <span>Appointment System</span>
             </a>
+
+            <div id="nav-auth" style="display: flex; gap: 1rem; align-items: center;">
+                <div class="loading" style="padding: 0; width: 20px; height: 20px;">
+                    <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                </div>
+            </div>
         </div>
     </nav>
+
+    <!-- Toast container -->
+    <div id="toast-root" class="toast-root"></div>
 
     <main class="container">
         <div th:replace="${content}"></div>
     </main>
 
-    <script>
-        lucide.createIcons();
+    <script th:inline="javascript">
+        // ---------- Small UI Helpers ----------
+        function toast(message, type = 'info') {
+            const root = document.getElementById('toast-root');
+            const el = document.createElement('div');
+            el.className = `toast toast-${type}`;
+            el.textContent = message;
+            root.appendChild(el);
+            setTimeout(() => {
+                el.classList.add('hide');
+                setTimeout(() => el.remove(), 250);
+            }, 2800);
+        }
+
+        function renderError(containerId, message) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            el.style.display = 'block';
+            el.textContent = message;
+        }
+
+        function clearError(containerId) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            el.style.display = 'none';
+            el.textContent = '';
+        }
+
+        function normalizePhone(raw) {
+            if (!raw) return '';
+            return String(raw).replace(/[^\d]/g, '');
+        }
+
+        // ---------- API Helper ----------
+        async function api(url, options = {}) {
+            const token = localStorage.getItem('token');
+
+            const headers = {
+                ...(options.headers || {}),
+            };
+
+            const isFormData = options.body instanceof FormData;
+            if (!isFormData && !headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+
+            if (token && !headers['Authorization']) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const res = await fetch(url, { ...options, headers });
+
+            let data = null;
+            const ct = res.headers.get('content-type') || '';
+            if (ct.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                data = { success: res.ok, message: text };
+            }
+
+            // Token expired or unauthorized → clear and redirect
+            if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('token');
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/dashboard/login?returnUrl=${returnUrl}`;
+                throw new Error('Unauthorized');
+            }
+
+            if (!res.ok || (data && data.success === false)) {
+                const msg = (data && (data.message || data.error)) ? (data.message || data.error) : 'Xatolik yuz berdi';
+                const err = new Error(msg);
+                err.data = data;
+                throw err;
+            }
+
+            return data;
+        }
+
+        // ---------- Auth ----------
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            const navAuth = document.getElementById('nav-auth');
+
+            if (!token) {
+                navAuth.innerHTML = `
+          <a href="/dashboard/login" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border)">Kirish</a>
+          <a href="/dashboard/register" class="btn-sm">Ro'yxatdan o'tish</a>
+        `;
+                return null;
+            }
+
+            try {
+                const result = await api('/api/auth/me', { method: 'GET' });
+                const user = result.data;
+                navAuth.innerHTML = `
+          <a href="/dashboard/profile" style="font-size: 0.875rem; font-weight: 500; color: var(--text-main); text-decoration: none; display:flex; align-items:center; gap:0.4rem;">
+            <i data-lucide="user-circle" style="width:18px;height:18px;"></i>
+            ${user.fullName}
+          </a>
+          <button onclick="logout()" class="btn-sm" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border)">
+            <i data-lucide="log-out" style="width: 14px; height: 14px"></i>
+          </button>
+        `;
+                lucide.createIcons();
+                return user;
+            } catch (err) {
+                // On any auth failure (expired token etc), clear token and show login buttons
+                localStorage.removeItem('token');
+                navAuth.innerHTML = `
+          <a href="/dashboard/login" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border)">Kirish</a>
+          <a href="/dashboard/register" class="btn-sm">Ro'yxatdan o'tish</a>
+        `;
+                return null;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/dashboard/tenants';
+        }
+
+        function requireAuthOrRedirect() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/dashboard/login?returnUrl=${returnUrl}`;
+                return false;
+            }
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            lucide.createIcons();
+        });
     </script>
 </body>
 

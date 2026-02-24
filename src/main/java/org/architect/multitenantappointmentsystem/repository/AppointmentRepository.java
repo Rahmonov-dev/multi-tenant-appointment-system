@@ -182,4 +182,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
         List<Appointment> findUpcomingAppointmentsByPhoneAndTenantId(@Param("phone") String customerPhone,
                         @Param("date") LocalDate date,
                         @Param("tenantId") UUID tenantId);
+
+        // ==================== USER EMAIL QUERIES ====================
+
+        @Query("SELECT a FROM Appointment a WHERE a.customerEmail = :email " +
+                        "AND a.appointmentDate >= :date " +
+                        "AND a.status IN ('PENDING', 'CONFIRMED') " +
+                        "ORDER BY a.appointmentDate, a.startTime")
+        @EntityGraph(attributePaths = { "staff", "tenant", "employement" })
+        List<Appointment> findUpcomingAppointmentsByEmail(@Param("email") String email,
+                        @Param("date") LocalDate date);
+
+        @Query("SELECT a FROM Appointment a WHERE a.customerEmail = :email " +
+                        "AND a.appointmentDate < CURRENT_DATE " +
+                        "ORDER BY a.appointmentDate DESC, a.startTime DESC")
+        @EntityGraph(attributePaths = { "staff", "tenant", "employement" })
+        List<Appointment> findPastAppointmentsByEmail(@Param("email") String email);
 }

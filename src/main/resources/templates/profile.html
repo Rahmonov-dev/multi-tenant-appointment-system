@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Profilim - Appointment System', content=~{::section})}">
+
+<body>
+    <section>
+        <div id="page-error" class="error-box"></div>
+
+        <!-- User Info Card -->
+        <div id="profile-loading" class="loading" style="margin: 3rem auto; width: fit-content;">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="profile-content" style="display:none;">
+
+            <!-- ===== User Info ===== -->
+            <div class="page-header" style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                <div
+                    style="width:72px;height:72px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="user" style="width:36px;height:36px;color:#fff;"></i>
+                </div>
+                <div>
+                    <h1 class="page-title" id="profile-name" style="margin:0;">-</h1>
+                    <p id="profile-email" style="color:var(--text-muted);margin:0.2rem 0;"></p>
+                    <p id="profile-phone" style="color:var(--text-muted);margin:0;"></p>
+                    <div id="profile-roles" style="margin-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap;"></div>
+                </div>
+            </div>
+
+            <!-- ===== Appointments ===== -->
+            <div style="margin-top:2rem;">
+                <h2
+                    style="font-size:1.2rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="calendar-check"></i> Mening Navbatlarim
+                </h2>
+
+                <!-- Tabs -->
+                <div
+                    style="display:flex;gap:0.5rem;margin-bottom:1.25rem;border-bottom:2px solid var(--border);padding-bottom:0;">
+                    <button id="tab-upcoming" class="tab-btn tab-active" onclick="switchTab('upcoming')">
+                        <i data-lucide="clock" style="width:14px;height:14px;"></i> Faol navbatlar
+                    </button>
+                    <button id="tab-past" class="tab-btn" onclick="switchTab('past')">
+                        <i data-lucide="history" style="width:14px;height:14px;"></i> O'tgan navbatlar
+                    </button>
+                </div>
+
+                <div id="appointments-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Create Organization ===== -->
+            <div id="create-org-section" style="display:none; margin-top:3rem;">
+                <h2
+                    style="font-size:1.2rem;font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="building-2"></i> Organizatsiya Yaratish
+                </h2>
+                <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">
+                    O'z biznesingizni ro'yxatga oling va mijozlaringiz navbat olishini ta'minlang.
+                </p>
+
+                <div class="card" style="cursor:default;max-width:680px;">
+                    <form id="create-tenant-form">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label class="label">Biznes turi *</label>
+                                <select id="businessType" class="input" required>
+                                    <option value="">Tanlang...</option>
+                                    <option value="BARBERSHOP">Sartaroshxona</option>
+                                    <option value="BEAUTY_SALON">Güzellik saloni</option>
+                                    <option value="MEDICAL_CLINIC">Tibbiy klinika</option>
+                                    <option value="FITNESS_CENTER">Fitness markaz</option>
+                                    <option value="SPA_CENTER">Spa markaz</option>
+                                    <option value="DENTAL_CLINIC">Stomatologiya</option>
+                                    <option value="NAIL_SALON">Manikür saloni</option>
+                                    <option value="OTHER">Boshqa</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label class="label">Organizatsiya nomi *</label>
+                                <input type="text" id="organizationName" class="input" required
+                                    placeholder="Mening Salonlarim" maxlength="200">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Email *</label>
+                                <input type="email" id="orgEmail" class="input" required placeholder="salon@mail.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Telefon *</label>
+                                <input type="tel" id="orgPhone" class="input" required placeholder="+998901234567">
+                            </div>
+
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label class="label">Manzil *</label>
+                                <input type="text" id="orgAddress" class="input" required
+                                    placeholder="Toshkent, Chilonzor 12-uy" maxlength="500">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Ish boshlanishi *</label>
+                                <input type="time" id="workStart" class="input" required value="09:00">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Ish tugashi *</label>
+                                <input type="time" id="workEnd" class="input" required value="18:00">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Slot davomiyligi (daqiqa) *</label>
+                                <input type="number" id="slotDuration" class="input" required value="30" min="15"
+                                    max="240">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Oldindan bron (kun) *</label>
+                                <input type="number" id="advanceBookingDays" class="input" required value="7" min="1"
+                                    max="365">
+                            </div>
+
+                            <div class="form-group"
+                                style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;">
+                                <input type="checkbox" id="autoConfirm" style="width:18px;height:18px;cursor:pointer;">
+                                <label for="autoConfirm" class="label" style="margin:0;cursor:pointer;">Navbatlarni
+                                    avtomatik tasdiqlash</label>
+                            </div>
+                        </div>
+
+                        <div id="org-error" class="error-box"></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;"
+                            id="create-org-btn">
+                            Organizatsiya yaratish
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- If user is OWNER, show their tenant info -->
+            <div id="owner-section" style="display:none; margin-top:3rem;">
+                <h2 style="font-size:1.2rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="building-2"></i> Mening Organizatsiyam
+                </h2>
+                <p style="color:var(--text-muted);font-size:0.9rem;">Sizda allaqachon organizatsiya mavjud.</p>
+                <a id="owner-tenant-link" href="#" class="btn-sm" style="display:inline-block;margin-top:0.75rem;">
+                    Boshqaruv paneliga o'tish →
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .tab-btn {
+                padding: 0.5rem 1rem;
+                background: transparent;
+                border: none;
+                border-bottom: 2px solid transparent;
+                cursor: pointer;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--text-muted);
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                margin-bottom: -2px;
+                transition: color 0.2s, border-color 0.2s;
+            }
+
+            .tab-btn:hover {
+                color: var(--text-main);
+            }
+
+            .tab-active {
+                color: var(--primary) !important;
+                border-bottom-color: var(--primary) !important;
+            }
+
+            .appt-card {
+                background: var(--bg-card, var(--bg-main));
+                border: 1px solid var(--border);
+                border-radius: 0.75rem;
+                padding: 1rem 1.25rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.6rem;
+                border-radius: 999px;
+                font-weight: 600;
+            }
+
+            .status-PENDING {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-CONFIRMED {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-COMPLETED {
+                background: #e0e7ff;
+                color: #3730a3;
+            }
+
+            .status-CANCELLED {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .status-NO_SHOW {
+                background: #f3f4f6;
+                color: #6b7280;
+            }
+        </style>
+
+        <script th:inline="javascript">
+            let currentTab = 'upcoming';
+            let currentUser = null;
+
+            function switchTab(tab) {
+                currentTab = tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+                document.getElementById(`tab-${tab}`).classList.add('tab-active');
+                loadAppointments(tab);
+            }
+
+            function renderAppointments(list) {
+                const container = document.getElementById('appointments-container');
+                if (!list || list.length === 0) {
+                    container.innerHTML = `<div class="empty">Navbatlar topilmadi.</div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+                list.forEach(a => {
+                    const date = a.appointmentDate
+                        ? new Date(a.appointmentDate).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
+                        : '-';
+                    const time = a.formattedTime || `${a.startTime || ''} - ${a.endTime || ''}`;
+                    const statusClass = `status-${a.status || 'PENDING'}`;
+
+                    const div = document.createElement('div');
+                    div.className = 'appt-card';
+                    div.innerHTML = `
+                    <div>
+                        <div style="font-weight:600;margin-bottom:0.3rem;">${a.serviceName || 'Xizmat'}</div>
+                        <div style="font-size:0.82rem;color:var(--text-muted);">
+                            <span>${a.tenantName || '-'}</span> &bull;
+                            <span>${a.staffName || '-'}</span>
+                        </div>
+                        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.2rem;">
+                            <i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;"></i>
+                            ${date} &bull; ${time}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>
+                        <div style="font-weight:700;color:var(--primary);margin-top:0.4rem;">${a.formattedPrice || ''}</div>
+                    </div>
+                `;
+                    container.appendChild(div);
+                });
+                lucide.createIcons();
+            }
+
+            async function loadAppointments(type) {
+                const container = document.getElementById('appointments-container');
+                container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+                try {
+                    const result = await api(`/api/auth/me/appointments?type=${type}`, { method: 'GET' });
+                    renderAppointments(result.data || []);
+                } catch (err) {
+                    container.innerHTML = `<div class="empty">Navbatlarni yuklashda xatolik: ${err.message}</div>`;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                if (!requireAuthOrRedirect()) return;
+
+                try {
+                    const result = await api('/api/auth/me', { method: 'GET' });
+                    currentUser = result.data;
+
+                    document.getElementById('profile-name').textContent = currentUser.fullName || '-';
+                    document.getElementById('profile-email').textContent = currentUser.email || '';
+                    document.getElementById('profile-phone').textContent = currentUser.phone || '';
+
+                    const rolesEl = document.getElementById('profile-roles');
+                    (currentUser.roles || []).forEach(role => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge badge-primary';
+                        badge.textContent = role;
+                        rolesEl.appendChild(badge);
+                    });
+
+                    document.getElementById('profile-loading').style.display = 'none';
+                    document.getElementById('profile-content').style.display = 'block';
+                    lucide.createIcons();
+
+                    // Show create-org or owner section based on roles
+                    const isOwner = (currentUser.roles || []).includes('OWNER');
+                    if (isOwner) {
+                        document.getElementById('owner-section').style.display = 'block';
+                    } else {
+                        document.getElementById('create-org-section').style.display = 'block';
+                    }
+
+                    loadAppointments('upcoming');
+
+                } catch (err) {
+                    document.getElementById('profile-loading').style.display = 'none';
+                    renderError('page-error', err.message || 'Profil ma\'lumotlarini yuklashda xatolik');
+                }
+            });
+
+            // Create tenant form submit
+            document.getElementById('create-tenant-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('org-error');
+
+                const btn = document.getElementById('create-org-btn');
+                btn.disabled = true;
+                btn.textContent = 'Yaratilmoqda...';
+
+                const phone = normalizePhone(document.getElementById('orgPhone').value);
+                const phoneFormatted = phone.startsWith('998') ? '+' + phone : (phone.length === 9 ? '+998' + phone : phone);
+
+                const payload = {
+                    businessType: document.getElementById('businessType').value,
+                    organizationName: document.getElementById('organizationName').value.trim(),
+                    email: document.getElementById('orgEmail').value.trim(),
+                    phone: phoneFormatted,
+                    address: document.getElementById('orgAddress').value.trim(),
+                    workingHoursStart: document.getElementById('workStart').value + ':00',
+                    workingHoursEnd: document.getElementById('workEnd').value + ':00',
+                    slotDuration: parseInt(document.getElementById('slotDuration').value),
+                    advanceBookingDays: parseInt(document.getElementById('advanceBookingDays').value),
+                    autoConfirmBooking: document.getElementById('autoConfirm').checked,
+                    timezone: 'Asia/Tashkent'
+                };
+
+                try {
+                    const result = await api('/api/tenant', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    toast('Organizatsiya muvaffaqiyatli yaratildi!', 'success');
+                    // Redirect to the new tenant's page
+                    setTimeout(() => {
+                        window.location.href = `/dashboard/tenant/${result.data.slug}`;
+                    }, 800);
+                } catch (err) {
+                    renderError('org-error', err.message || 'Organizatsiya yaratishda xatolik');
+                    btn.disabled = false;
+                    btn.textContent = 'Organizatsiya yaratish';
+                }
+            });
+        </script>
+    </section>
+</body>
+
+</html>

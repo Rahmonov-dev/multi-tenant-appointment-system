@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.architect.multitenantappointmentsystem.dto.*;
 import org.architect.multitenantappointmentsystem.dto.request.LoginRequest;
 import org.architect.multitenantappointmentsystem.dto.request.RegisterRequest;
+import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
 import org.architect.multitenantappointmentsystem.dto.response.AuthResponse;
 import org.architect.multitenantappointmentsystem.dto.response.UserMeResponse;
 import org.architect.multitenantappointmentsystem.service.interfaces.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,10 +27,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDto<AuthResponse>> login(@Validated @RequestBody LoginRequest request) {
-        return ResponseDto.ok(service.login(request),"Successfully Loged in").toResponseEntity();
+        return ResponseDto.ok(service.login(request), "Successfully Loged in").toResponseEntity();
     }
+
     @GetMapping("/me")
     public ResponseEntity<ResponseDto<UserMeResponse>> me() {
         return service.getMe().toResponseEntity();
+    }
+
+    @GetMapping("/me/appointments")
+    public ResponseEntity<ResponseDto<List<AppointmentResponse>>> myAppointments(
+            @RequestParam(defaultValue = "upcoming") String type) {
+        return service.getMyAppointments(type).toResponseEntity();
     }
 }

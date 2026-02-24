@@ -20,8 +20,7 @@ public record TenantResponse(
         Integer advanceBookingDays,
         Boolean autoConfirmBooking,
         String timezone,
-        Boolean isActive,
-        LocalDateTime createdAt
+        Boolean isActive
 ) {
     public static TenantResponse from(Tenant tenant) {
         return new TenantResponse(
@@ -38,8 +37,7 @@ public record TenantResponse(
                 tenant.getAdvanceBookingDays(),
                 tenant.getAutoConfirmBooking(),
                 tenant.getTimezone(),
-                tenant.getIsActive(),
-                tenant.getCreatedAt()
+                tenant.getIsActive()
         );
     }
 }

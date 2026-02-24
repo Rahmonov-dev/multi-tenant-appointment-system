@@ -15,4 +15,6 @@ public interface TenantService {
     TenantResponse updateTenant(UUID id, UpdateTenantRequest request);
     void deleteTenant(UUID id);
     Page<TenantResponse> getAllTenants(Pageable pageable);
+    Page<TenantResponse> searchTenants(String q, Pageable pageable);
 }
+

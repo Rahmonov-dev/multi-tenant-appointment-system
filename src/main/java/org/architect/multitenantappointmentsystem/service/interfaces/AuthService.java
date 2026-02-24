@@ -3,6 +3,7 @@ package org.architect.multitenantappointmentsystem.service.interfaces;
 import org.architect.multitenantappointmentsystem.dto.*;
 import org.architect.multitenantappointmentsystem.dto.request.LoginRequest;
 import org.architect.multitenantappointmentsystem.dto.request.RegisterRequest;
+import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
 import org.architect.multitenantappointmentsystem.dto.response.AuthResponse;
 import org.architect.multitenantappointmentsystem.dto.response.UserMeResponse;
 import org.architect.multitenantappointmentsystem.security.AuthUser;
@@ -10,17 +11,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.Optional;
 
 public interface AuthService {
-    public AuthResponse register(RegisterRequest request);
-
-    public AuthResponse login(LoginRequest request);
-    public ResponseDto<UserMeResponse> getMe();
+    AuthResponse register(RegisterRequest request);
+    AuthResponse login(LoginRequest request);
+    ResponseDto<UserMeResponse> getMe();
+    ResponseDto<List<AppointmentResponse>> getMyAppointments(String type);
 
     static Optional<AuthUser> getCurrentUser() {
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        if (authentication==null|| !authentication.isAuthenticated()||authentication.getPrincipal()==null){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null) {
             return Optional.empty();
         }
         if (authentication.getPrincipal() instanceof AuthUser user) {
@@ -29,6 +31,7 @@ public interface AuthService {
             return Optional.empty();
         }
     }
+
     static java.util.UUID getCurrentUserId() {
         try {
             return getCurrentUser()

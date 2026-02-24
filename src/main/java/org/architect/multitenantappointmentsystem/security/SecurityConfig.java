@@ -35,6 +35,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/dashboard/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tenant/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/*/staff/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/*/services/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/*/appointments/available-slots").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/*/appointments").authenticated()
                         .requestMatchers("/",
                                 "/error",
                                 "/css/**",

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Navbat olish - Appointment System', content=~{::section})}">
+
+<body>
+<section>
+    <div class="page-header">
+        <h1 class="page-title" id="service-name">Navbat olish</h1>
+        <p id="tenant-org" style="color: var(--text-muted)">Bog'lanish...</p>
+        <div id="page-error" class="error-box"></div>
+    </div>
+
+    <div class="card" style="max-width: 600px; margin: 0 auto; cursor: default;">
+        <div id="step-1">
+            <h3 class="section-title"><i data-lucide="users"></i> Mutaxassisni tanlang</h3>
+            <div id="staff-options" class="grid" style="grid-template-columns: 1fr; gap: 0.75rem;">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <div id="step-2" style="display: none;">
+            <h3 class="section-title"><i data-lucide="calendar"></i> Vaqtni tanlang</h3>
+            <div class="form-group">
+                <label class="label">Sana</label>
+                <input type="date" id="booking-date" class="input">
+            </div>
+            <div id="slots-container">
+                <p style="font-size: 0.875rem; color: var(--text-muted)">Sana tanlangandan so'ng bo'sh vaqtlar ko'rinadi</p>
+            </div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn" onclick="prevStep(1)" style="border: 1px solid var(--border)">Orqaga</button>
+            </div>
+        </div>
+
+        <div id="step-3" style="display: none;">
+            <h3 class="section-title"><i data-lucide="user"></i> Ma'lumotlaringiz</h3>
+            <div class="form-group">
+                <label class="label">Ism familiyangiz</label>
+                <input type="text" id="customer-name" class="input" placeholder="Masalan: Ali Valiyev">
+            </div>
+            <div class="form-group">
+                <label class="label">Telefon raqamingiz</label>
+                <input type="tel" id="customer-phone" class="input" placeholder="+998901234567">
+            </div>
+            <div class="form-group">
+                <label class="label">Izoh (ixtiyoriy)</label>
+                <textarea id="booking-notes" class="input" style="height: 100px"></textarea>
+            </div>
+
+            <div id="form-error" class="error-box"></div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn" onclick="prevStep(2)" style="border: 1px solid var(--border)">Orqaga</button>
+                <button class="btn btn-primary" onclick="submitBooking()" id="submit-btn" style="flex: 1;">Tasdiqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        let selectedStaffId = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let tenantId = null;
+        let serviceId = null;
+        let slug = null;
+        let userData = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            clearError('page-error');
+            clearError('form-error');
+
+            if (!requireAuthOrRedirect()) return;
+
+            // Parse URL: /dashboard/tenant/{slug}/book/{serviceId}
+            const parts = window.location.pathname.split('/').filter(Boolean);
+            serviceId = parts[parts.length - 1];
+            slug = parts[parts.length - 3];
+
+            try {
+                // user data
+                const me = await api('/api/auth/me', { method: 'GET' });
+                userData = me.data;
+                document.getElementById('customer-name').value = userData.fullName || '';
+                document.getElementById('customer-phone').value = userData.phone || '';
+
+                // tenant info
+                const tenantRes = await api(`/api/tenant/${slug}/by-slug`, { method: 'GET' });
+                const t = tenantRes.data;
+                tenantId = t.id;
+                document.getElementById('tenant-org').textContent = t.organizationName || '-';
+
+                // service detail
+                try {
+                    const serviceRes = await api(`/api/${tenantId}/services/${serviceId}`, { method: 'GET' });
+                    document.getElementById('service-name').textContent = `${serviceRes.data.name} uchun navbat`;
+                } catch {
+                    // optional: ignore
+                }
+
+                // staff by service
+                const staffRes = await api(`/api/${tenantId}/staff/by-service/${serviceId}`, { method: 'GET' });
+                const staff = staffRes.data || [];
+
+                const staffOptions = document.getElementById('staff-options');
+                staffOptions.innerHTML = '';
+
+                if (staff.length === 0) {
+                    staffOptions.innerHTML = `<div class="empty">Ushbu xizmat uchun xodim topilmadi.</div>`;
+                } else {
+                    staff.forEach(s => {
+                        const item = document.createElement('div');
+                        item.className = 'list-item';
+                        item.style.cursor = 'pointer';
+                        item.onclick = () => selectStaff(s.id);
+                        item.innerHTML = `
+                <div class="list-item-content">
+                  <h4>${s.displayName || '-'}</h4>
+                  <p>${s.position || '-'}</p>
+                </div>
+                <i data-lucide="chevron-right"></i>
+              `;
+                        staffOptions.appendChild(item);
+                    });
+                    lucide.createIcons();
+                }
+
+                // date min = today
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                document.getElementById('booking-date').min = `${yyyy}-${mm}-${dd}`;
+
+                document.getElementById('booking-date').addEventListener('change', (e) => {
+                    selectedDate = e.target.value;
+                    loadSlots();
+                });
+
+                lucide.createIcons();
+            } catch (err) {
+                console.error(err);
+                renderError('page-error', err.message || 'Sahifani yuklashda xatolik');
+            }
+        });
+
+        function selectStaff(id) {
+            selectedStaffId = id;
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+            lucide.createIcons();
+        }
+
+        async function loadSlots() {
+            if (!selectedStaffId || !selectedDate) return;
+
+            const container = document.getElementById('slots-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const result = await api(`/api/${tenantId}/appointments/available-slots?staffId=${selectedStaffId}&date=${selectedDate}&serviceId=${serviceId}`, { method: 'GET' });
+                const slots = result.data || [];
+
+                if (slots.length === 0) {
+                    container.innerHTML = `<div class="empty">Ushbu kunga bo'sh vaqtlar topilmadi.</div>`;
+                    return;
+                }
+
+                container.innerHTML = '<div class="slots-grid"></div>';
+                const grid = container.querySelector('.slots-grid');
+
+                slots.forEach(slot => {
+                    const btn = document.createElement('div');
+                    btn.className = 'slot-btn';
+                    btn.textContent = (slot.startTime || '').substring(0, 5);
+                    btn.onclick = () => selectSlot(btn, slot.startTime);
+                    grid.appendChild(btn);
+                });
+            } catch (err) {
+                container.innerHTML = `<div class="empty">Vaqtlarni yuklashda xatolik: ${err.message}</div>`;
+            }
+        }
+
+        function selectSlot(el, time) {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTime = time;
+
+            setTimeout(() => {
+                document.getElementById('step-2').style.display = 'none';
+                document.getElementById('step-3').style.display = 'block';
+                lucide.createIcons();
+            }, 200);
+        }
+
+        function prevStep(step) {
+            document.getElementById('step-1').style.display = step === 1 ? 'block' : 'none';
+            document.getElementById('step-2').style.display = step === 2 ? 'block' : 'none';
+            document.getElementById('step-3').style.display = 'none';
+            clearError('form-error');
+            lucide.createIcons();
+        }
+
+        async function submitBooking() {
+            clearError('form-error');
+
+            const name = document.getElementById('customer-name').value.trim();
+            const phone = normalizePhone(document.getElementById('customer-phone').value);
+            const notes = document.getElementById('booking-notes').value;
+
+            if (!selectedStaffId || !selectedDate || !selectedTime) {
+                renderError('form-error', 'Iltimos mutaxassis, sana va vaqtni tanlang.');
+                return;
+            }
+            if (!name || !phone) {
+                renderError('form-error', 'Iltimos ism va telefoningizni kiriting.');
+                return;
+            }
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Yuborilmoqda...';
+
+            const payload = {
+                staffId: selectedStaffId,
+                serviceId: serviceId,
+                customerName: name,
+                customerPhone: phone,
+                appointmentDate: selectedDate,
+                startTime: selectedTime,
+                notes: notes
+            };
+
+            try {
+                await api(`/api/${tenantId}/appointments`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                toast('Muvaffaqiyatli band qilindi!', 'success');
+                window.location.href = `/dashboard/tenant/${slug}`;
+            } catch (err) {
+                renderError('form-error', err.message || "Noma'lum xatolik");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Tasdiqlash';
+            }
+        }
+    </script>
+</section>
+</body>
+
+</html>
