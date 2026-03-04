@@ -99,6 +99,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseDto<UserMeResponse> getMe() {
         Optional<AuthUser> optional = AuthService.getCurrentUser();
         if (optional.isEmpty()) {
@@ -108,18 +109,60 @@ public class AuthServiceImpl implements AuthService {
         AuthUser authUser = optional.get();
 
         return userRepository.findById(authUser.getUserId())
-                .map(user -> new UserMeResponse(
-                        user.getId(),
-                        user.getFirstName() + " " + user.getLastName(),
-                        user.getPhone(),
-                        user.getEmail(),
-                        user.getStaffRoles()
-                                .stream()
-                                .map(staff -> staff.getRole().name())
-                                .toList()
-                ))
+                .map(user -> {
+                    List<String> roles = user.getStaffRoles()
+                            .stream()
+                            .map(staff -> staff.getRole().name())
+                            .toList();
+
+                    java.util.UUID tenantId = null;
+                    String tenantSlug = null;
+                    java.util.UUID staffId = null;
+                    java.util.UUID staffTenantId = null;
+                    String staffTenantSlug = null;
+
+                    for (var staff : user.getStaffRoles()) {
+                        if (staff.getRole() == org.architect.multitenantappointmentsystem.entity.StaffRole.OWNER) {
+                            tenantId = staff.getTenant().getId();
+                            tenantSlug = staff.getTenant().getSlug();
+                        } else {
+                            staffId = staff.getId();
+                            staffTenantId = staff.getTenant().getId();
+                            staffTenantSlug = staff.getTenant().getSlug();
+                        }
+                    }
+
+                    return new UserMeResponse(
+                            user.getId(),
+                            user.getFirstName() + " " + user.getLastName(),
+                            user.getPhone(),
+                            user.getEmail(),
+                            roles,
+                            tenantId,
+                            tenantSlug,
+                            staffId,
+                            staffTenantId,
+                            staffTenantSlug
+                    );
+                })
                 .map(ResponseDto::ok)
                 .orElseGet(ResponseDto::unauthorized);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseDto<UserResponse> findUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Foydalanuvchi topilmadi: " + email));
+        UserResponse response = new UserResponse(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getStatus().name()
+        );
+        return ResponseDto.ok(response);
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.architect.multitenantappointmentsystem.dto.request.RegisterRequest;
 import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
 import org.architect.multitenantappointmentsystem.dto.response.AuthResponse;
 import org.architect.multitenantappointmentsystem.dto.response.UserMeResponse;
+import org.architect.multitenantappointmentsystem.dto.response.UserResponse;
 import org.architect.multitenantappointmentsystem.security.AuthUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
     ResponseDto<UserMeResponse> getMe();
     ResponseDto<List<AppointmentResponse>> getMyAppointments(String type);
+    ResponseDto<UserResponse> findUserByEmail(String email);
 
     static Optional<AuthUser> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

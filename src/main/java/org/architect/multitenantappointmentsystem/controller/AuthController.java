@@ -7,6 +7,7 @@ import org.architect.multitenantappointmentsystem.dto.request.RegisterRequest;
 import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
 import org.architect.multitenantappointmentsystem.dto.response.AuthResponse;
 import org.architect.multitenantappointmentsystem.dto.response.UserMeResponse;
+import org.architect.multitenantappointmentsystem.dto.response.UserResponse;
 import org.architect.multitenantappointmentsystem.service.interfaces.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -39,5 +40,10 @@ public class AuthController {
     public ResponseEntity<ResponseDto<List<AppointmentResponse>>> myAppointments(
             @RequestParam(defaultValue = "upcoming") String type) {
         return service.getMyAppointments(type).toResponseEntity();
+    }
+
+    @GetMapping("/find-by-email")
+    public ResponseEntity<ResponseDto<UserResponse>> findUserByEmail(@RequestParam String email) {
+        return service.findUserByEmail(email).toResponseEntity();
     }
 }

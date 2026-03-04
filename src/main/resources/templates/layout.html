@@ -33,7 +33,7 @@
         <div th:replace="${content}"></div>
     </main>
 
-    <script th:inline="javascript">
+    <script>
         // ---------- Small UI Helpers ----------
         function toast(message, type = 'info') {
             const root = document.getElementById('toast-root');
@@ -128,11 +128,30 @@
             try {
                 const result = await api('/api/auth/me', { method: 'GET' });
                 const user = result.data;
+
+                let manageLink = '';
+                if (user.tenantSlug) {
+                    manageLink = `
+              <a href="/dashboard/manage/${user.tenantSlug}" style="font-size: 0.875rem; font-weight: 500; color: var(--primary); text-decoration: none; display:flex; align-items:center; gap:0.4rem;">
+                <i data-lucide="layout-dashboard" style="width:16px;height:16px;"></i>
+                Boshqaruv paneli
+              </a>
+            `;
+                } else if (user.staffTenantSlug) {
+                    manageLink = `
+              <a href="/dashboard/staff/${user.staffTenantSlug}" style="font-size: 0.875rem; font-weight: 500; color: var(--primary); text-decoration: none; display:flex; align-items:center; gap:0.4rem;">
+                <i data-lucide="briefcase" style="width:16px;height:16px;"></i>
+                Ish joyi
+              </a>
+            `;
+                }
+
                 navAuth.innerHTML = `
           <a href="/dashboard/profile" style="font-size: 0.875rem; font-weight: 500; color: var(--text-main); text-decoration: none; display:flex; align-items:center; gap:0.4rem;">
             <i data-lucide="user-circle" style="width:18px;height:18px;"></i>
             ${user.fullName}
           </a>
+          ${manageLink}
           <button onclick="logout()" class="btn-sm" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border)">
             <i data-lucide="log-out" style="width: 14px; height: 14px"></i>
           </button>
@@ -140,12 +159,22 @@
                 lucide.createIcons();
                 return user;
             } catch (err) {
-                // On any auth failure (expired token etc), clear token and show login buttons
-                localStorage.removeItem('token');
-                navAuth.innerHTML = `
+                // Only clear token for auth errors (401/403); api() already handles redirect for those.
+                // For other errors (network, server), keep the token and show cached state.
+                if (err.message === 'Unauthorized') {
+                    navAuth.innerHTML = `
           <a href="/dashboard/login" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border)">Kirish</a>
           <a href="/dashboard/register" class="btn-sm">Ro'yxatdan o'tish</a>
         `;
+                } else {
+                    navAuth.innerHTML = `
+          <a href="/dashboard/profile" style="font-size: 0.875rem; font-weight: 500; color: var(--text-main); text-decoration: none;">Profil</a>
+          <button onclick="logout()" class="btn-sm" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border)">
+            <i data-lucide="log-out" style="width: 14px; height: 14px"></i>
+          </button>
+        `;
+                    lucide.createIcons();
+                }
                 return null;
             }
         }

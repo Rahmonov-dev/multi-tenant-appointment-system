@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Ish Joyi - Appointment System', content=~{::section})}">
+
+<body>
+<section>
+    <div id="page-error" class="error-box"></div>
+
+    <div id="staff-loading" class="loading" style="margin:3rem auto;width:fit-content;">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="staff-content" style="display:none;">
+
+        <!-- Header -->
+        <div class="page-header"
+            style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="user" style="width:28px;height:28px;color:#fff;"></i>
+                </div>
+                <div>
+                    <h1 class="page-title" id="staff-name" style="margin:0;">-</h1>
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem;">
+                        <span id="staff-role-badge" class="badge badge-primary" style="font-size:0.75rem;"></span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;" id="staff-position"></span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">·</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;" id="tenant-name-label"></span>
+                    </div>
+                </div>
+            </div>
+            <a id="tenant-public-link" href="#" class="btn-sm"
+                style="display:inline-flex;align-items:center;gap:0.4rem;">
+                <i data-lucide="external-link" style="width:14px;height:14px;"></i> Salon sahifasi
+            </a>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:0.25rem;margin:1.5rem 0 1.25rem;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="m-tab m-tab-active" data-tab="today" onclick="switchTab('today')">
+                <i data-lucide="calendar-check" style="width:14px;height:14px;"></i> Bugun
+            </button>
+            <button class="m-tab" data-tab="appointments" onclick="switchTab('appointments')">
+                <i data-lucide="calendar" style="width:14px;height:14px;"></i> Navbatlar
+            </button>
+            <button class="m-tab" data-tab="schedule" onclick="switchTab('schedule')">
+                <i data-lucide="clock" style="width:14px;height:14px;"></i> Jadvalim
+            </button>
+            <button class="m-tab" data-tab="history" onclick="switchTab('history')">
+                <i data-lucide="history" style="width:14px;height:14px;"></i> Tarixim
+            </button>
+            <button class="m-tab" data-tab="profile" onclick="switchTab('profile')">
+                <i data-lucide="user-circle" style="width:14px;height:14px;"></i> Profilim
+            </button>
+        </div>
+
+        <!-- ===== TAB: Bugun ===== -->
+        <div id="panel-today">
+            <div id="today-stats"
+                style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem;"></div>
+            <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">Bugungi navbatlar</h3>
+            <div id="today-list"></div>
+        </div>
+
+        <!-- ===== TAB: Navbatlar ===== -->
+        <div id="panel-appointments" style="display:none;">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+                <label class="label" style="margin:0;white-space:nowrap;">Sana:</label>
+                <input type="date" id="appt-date" class="input" style="max-width:180px;">
+                <button onclick="loadAppointmentsByDate()" class="btn btn-primary" style="padding:0.45rem 1rem;">
+                    <i data-lucide="search" style="width:14px;height:14px;"></i> Ko'rish
+                </button>
+            </div>
+            <div id="appt-list"></div>
+        </div>
+
+        <!-- ===== TAB: Jadval ===== -->
+        <div id="panel-schedule" style="display:none;">
+            <div id="schedule-content"></div>
+        </div>
+
+        <!-- ===== TAB: Tarixim ===== -->
+        <div id="panel-history" style="display:none;">
+            <!-- Filters -->
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+                <select id="history-status-filter" class="input" style="max-width:180px;" onchange="loadHistory(0)">
+                    <option value="">Barcha statuslar</option>
+                    <option value="PENDING">Kutilmoqda</option>
+                    <option value="CONFIRMED">Tasdiqlangan</option>
+                    <option value="COMPLETED">Yakunlangan</option>
+                    <option value="CANCELLED">Bekor qilingan</option>
+                    <option value="NO_SHOW">Kelmadi</option>
+                </select>
+                <span id="history-total-badge"
+                    style="font-size:0.82rem;color:var(--text-muted);padding:0.3rem 0.75rem;background:var(--bg-main);border:1px solid var(--border);border-radius:1rem;"></span>
+            </div>
+            <div id="history-list"></div>
+            <!-- Pagination -->
+            <div id="history-pagination" style="display:flex;justify-content:center;gap:0.5rem;margin-top:1.25rem;flex-wrap:wrap;"></div>
+        </div>
+
+        <!-- ===== TAB: Profil ===== -->
+        <div id="panel-profile" style="display:none;">
+            <div id="profile-content-staff"></div>
+        </div>
+    </div>
+
+    <!-- ===== Reject Modal ===== -->
+    <div id="reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;padding:1rem;overflow-y:auto;">
+        <div style="background:var(--bg-card,#fff);border-radius:1rem;padding:1.5rem;max-width:420px;margin:3rem auto;position:relative;">
+            <button onclick="closeRejectModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                <i data-lucide="x" style="width:20px;height:20px;"></i>
+            </button>
+            <h3 style="margin:0 0 0.25rem;font-size:1rem;font-weight:600;color:#991b1b;">
+                <i data-lucide="x-circle" style="width:15px;height:15px;vertical-align:middle;"></i>
+                Navbatni rad etish
+            </h3>
+            <p id="reject-appt-info" style="font-size:0.85rem;color:var(--text-muted);margin:0.5rem 0 1rem;"></p>
+            <div class="form-group">
+                <label class="label">Sabab <span style="color:#dc2626;">*</span></label>
+                <textarea id="reject-reason" class="input" style="height:90px;" placeholder="Rad etish sababini kiriting..."></textarea>
+            </div>
+            <div id="reject-error" style="color:#dc2626;font-size:0.82rem;margin-bottom:0.5rem;display:none;"></div>
+            <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                <button onclick="closeRejectModal()" class="btn" style="flex:1;border:1px solid var(--border);">Bekor</button>
+                <button onclick="submitReject()" id="reject-submit-btn" class="btn"
+                    style="flex:1;background:#dc2626;color:#fff;border:none;">
+                    Rad etish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .m-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: -2px;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .m-tab:hover { color: var(--text-main); }
+        .m-tab-active { color: var(--primary) !important; border-bottom-color: var(--primary) !important; }
+
+        .appt-row {
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .appt-row:hover { border-color: var(--primary); }
+
+        .stat-card {
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .status-badge {
+            font-size: 0.72rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-PENDING    { background: #fef3c7; color: #92400e; }
+        .status-CONFIRMED  { background: #d1fae5; color: #065f46; }
+        .status-COMPLETED  { background: #e0e7ff; color: #3730a3; }
+        .status-CANCELLED  { background: #fee2e2; color: #991b1b; }
+        .status-NO_SHOW    { background: #f3f4f6; color: #6b7280; }
+
+        .action-btn {
+            padding: 0.3rem 0.65rem;
+            border-radius: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .action-btn:hover { filter: brightness(0.92); }
+        .action-btn.confirm  { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+        .action-btn.reject   { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .action-btn.complete { background: #e0e7ff; border-color: #a5b4fc; color: #3730a3; }
+        .action-btn.noshow   { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
+
+        .sched-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+        }
+        .sched-card {
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        .sched-card.available { border-color: #6ee7b7; background: #f0fdf4; }
+        .sched-card.unavailable { opacity: 0.55; }
+        .sched-day { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .sched-time { font-size: 0.82rem; color: var(--text-muted); }
+    </style>
+
+    <script>
+        const DAY_NAMES = { 1:'Dushanba', 2:'Seshanba', 3:'Chorshanba', 4:'Payshanba', 5:'Juma', 6:'Shanba', 7:'Yakshanba' };
+
+        let tenantId = null;
+        let staffId = null;
+        let staffRole = null;
+        let currentTab = 'today';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('m-tab-active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('m-tab-active');
+            document.querySelectorAll('[id^="panel-"]').forEach(p => p.style.display = 'none');
+            document.getElementById(`panel-${tab}`).style.display = 'block';
+            lucide.createIcons();
+
+            if (tab === 'today') loadToday();
+            else if (tab === 'appointments') loadAppointmentsByDate();
+            else if (tab === 'schedule') loadSchedule();
+            else if (tab === 'history') loadHistory(0);
+            else if (tab === 'profile') loadStaffProfile();
+        }
+
+        // ==================== TODAY ====================
+        async function loadToday() {
+            const today = new Date().toISOString().split('T')[0];
+            const statsEl = document.getElementById('today-stats');
+            const listEl = document.getElementById('today-list');
+            statsEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            listEl.innerHTML = '';
+
+            try {
+                const res = await api(`/api/${tenantId}/appointments/by-staff/${staffId}?date=${today}`, { method: 'GET' });
+                const appts = res.data || [];
+
+                const active = appts.filter(a => a.status !== 'CANCELLED' && a.status !== 'NO_SHOW');
+                const pending = active.filter(a => a.status === 'PENDING').length;
+                const confirmed = active.filter(a => a.status === 'CONFIRMED').length;
+                const completed = active.filter(a => a.status === 'COMPLETED').length;
+
+                statsEl.innerHTML = `
+                    <div class="stat-card"><div class="stat-value">${active.length}</div><div class="stat-label">Jami bugun</div></div>
+                    <div class="stat-card"><div class="stat-value">${pending}</div><div class="stat-label">Kutilmoqda</div></div>
+                    <div class="stat-card"><div class="stat-value">${confirmed}</div><div class="stat-label">Tasdiqlangan</div></div>
+                    <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Yakunlangan</div></div>
+                `;
+                renderAppointments(appts, listEl);
+            } catch (e) {
+                statsEl.innerHTML = '';
+                listEl.innerHTML = `<div class="empty">Yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
+
+        // ==================== APPOINTMENTS BY DATE ====================
+        async function loadAppointmentsByDate() {
+            const dateInput = document.getElementById('appt-date');
+            const date = dateInput.value;
+            if (!date) return;
+            const listEl = document.getElementById('appt-list');
+            listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const res = await api(`/api/${tenantId}/appointments/by-staff/${staffId}?date=${date}`, { method: 'GET' });
+                renderAppointments(res.data || [], listEl);
+            } catch (e) {
+                listEl.innerHTML = `<div class="empty">Yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
+
+        // ==================== RENDER APPOINTMENTS ====================
+        function renderAppointments(list, container) {
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div class="empty">Bu kunda navbat topilmadi.</div>`;
+                return;
+            }
+            const isManager = staffRole === 'MANAGER' || staffRole === 'OWNER';
+            container.innerHTML = '';
+            list.forEach(a => {
+                const start = (a.startTime || '').toString().substring(0, 5);
+                const end = (a.endTime || '').toString().substring(0, 5);
+                const time = a.formattedTime || (start && end ? `${start} - ${end}` : '-');
+                const statusClass = `status-${a.status || 'PENDING'}`;
+
+                let actions = '';
+                if (isManager) {
+                    if (a.status === 'PENDING') {
+                        actions = `
+                            <button class="action-btn confirm" onclick="confirmAppt('${a.id}','today')">
+                                <i data-lucide="check" style="width:12px;height:12px;"></i> Tasdiqlash
+                            </button>
+                            <button class="action-btn reject" data-id="${a.id}" data-name="${(a.customerName||'').replace(/"/g,'&quot;')}" data-source="today" onclick="openRejectModalFromEl(this)">
+                                <i data-lucide="x" style="width:12px;height:12px;"></i> Rad etish
+                            </button>`;
+                    }
+                    if (a.status === 'CONFIRMED' || a.status === 'PENDING') {
+                        actions += `
+                            <button class="action-btn complete" onclick="completeAppt('${a.id}')">
+                                <i data-lucide="check-check" style="width:12px;height:12px;"></i> Yakunlash
+                            </button>
+                            <button class="action-btn noshow" onclick="noShowAppt('${a.id}')">
+                                <i data-lucide="user-x" style="width:12px;height:12px;"></i> Kelmadi
+                            </button>`;
+                    }
+                }
+
+                const div = document.createElement('div');
+                div.className = 'appt-row';
+                div.id = `appt-${a.id}`;
+                div.innerHTML = `
+                    <div style="flex:1;min-width:180px;">
+                        <div style="font-weight:600;font-size:0.95rem;margin-bottom:0.25rem;">
+                            ${a.customerName || '-'}
+                        </div>
+                        <div style="font-size:0.82rem;color:var(--text-muted);">
+                            <i data-lucide="phone" style="width:11px;height:11px;vertical-align:middle;"></i>
+                            ${a.customerPhone || '-'}
+                        </div>
+                        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.15rem;">
+                            <i data-lucide="briefcase" style="width:11px;height:11px;vertical-align:middle;"></i>
+                            ${a.serviceName || '-'}
+                            <span style="color:var(--border);margin:0 0.25rem;">·</span>
+                            <i data-lucide="clock" style="width:11px;height:11px;vertical-align:middle;"></i>
+                            ${time}
+                        </div>
+                        ${a.notes ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;font-style:italic;">${a.notes}</div>` : ''}
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;">
+                        <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>
+                        <div style="font-weight:700;color:var(--primary);font-size:0.85rem;">${a.formattedPrice || ''}</div>
+                        ${actions ? `<div style="display:flex;gap:0.35rem;flex-wrap:wrap;justify-content:flex-end;">${actions}</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        // ==================== MANAGER ACTIONS ====================
+        function reloadCurrentSource(source) {
+            if (source === 'history') loadHistory(historyCurrentPage);
+            else if (currentTab === 'today') loadToday();
+            else loadAppointmentsByDate();
+        }
+
+        async function confirmAppt(id, source) {
+            try {
+                await api(`/api/${tenantId}/appointments/${id}/confirm`, { method: 'PUT' });
+                toast('Navbat tasdiqlandi', 'success');
+                reloadCurrentSource(source);
+            } catch (e) { toast(e.message || 'Xatolik', 'error'); }
+        }
+
+        async function completeAppt(id, source) {
+            try {
+                await api(`/api/${tenantId}/appointments/${id}/complete`, { method: 'PUT' });
+                toast('Navbat yakunlandi', 'success');
+                reloadCurrentSource(source);
+            } catch (e) { toast(e.message || 'Xatolik', 'error'); }
+        }
+
+        async function noShowAppt(id, source) {
+            try {
+                await api(`/api/${tenantId}/appointments/${id}/no-show`, { method: 'PUT' });
+                toast("Mijoz kelmadi deb belgilandi", 'success');
+                reloadCurrentSource(source);
+            } catch (e) { toast(e.message || 'Xatolik', 'error'); }
+        }
+
+        // ===== Reject (Cancel with reason) =====
+        let rejectApptId = null, rejectSource = null;
+
+        function openRejectModalFromEl(btn) {
+            openRejectModal(btn.dataset.id, btn.dataset.name, btn.dataset.source);
+        }
+
+        function openRejectModal(id, customerName, source) {
+            rejectApptId = id;
+            rejectSource = source;
+            document.getElementById('reject-appt-info').textContent = customerName || 'Mijoz';
+            document.getElementById('reject-reason').value = '';
+            document.getElementById('reject-error').style.display = 'none';
+            document.getElementById('reject-modal').style.display = 'block';
+            lucide.createIcons();
+        }
+
+        function closeRejectModal() {
+            document.getElementById('reject-modal').style.display = 'none';
+            rejectApptId = null; rejectSource = null;
+        }
+
+        async function submitReject() {
+            const reason = document.getElementById('reject-reason').value.trim();
+            const errEl = document.getElementById('reject-error');
+            errEl.style.display = 'none';
+            if (!reason) {
+                errEl.textContent = 'Sabab kiriting';
+                errEl.style.display = 'block';
+                return;
+            }
+            const btn = document.getElementById('reject-submit-btn');
+            btn.disabled = true; btn.textContent = 'Yuklanmoqda...';
+            try {
+                await api(`/api/${tenantId}/appointments/${rejectApptId}/cancel`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ reason })
+                });
+                toast('Navbat rad etildi', 'success');
+                const src = rejectSource;
+                closeRejectModal();
+                reloadCurrentSource(src);
+            } catch (e) {
+                errEl.textContent = e.message || 'Xatolik yuz berdi';
+                errEl.style.display = 'block';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Rad etish';
+            }
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target === document.getElementById('reject-modal')) closeRejectModal();
+        });
+
+        // ==================== SCHEDULE ====================
+        async function loadSchedule() {
+            const el = document.getElementById('schedule-content');
+            el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const res = await api(`/api/${tenantId}/staff/${staffId}/schedules`, { method: 'GET' });
+                const schedules = res.data || [];
+                const map = {};
+                schedules.forEach(s => { map[s.dayOfWeek] = s; });
+
+                if (schedules.length === 0) {
+                    el.innerHTML = `<div class="empty">Jadval hali kiritilmagan. Salonning boshqaruvchisidan so'rang.</div>`;
+                    return;
+                }
+
+                let html = `
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
+                        Haftaning ish jadvali. O'zgartirish uchun salon boshqaruvchisiga murojaat qiling.
+                    </p>
+                    <div class="sched-grid">`;
+
+                for (let d = 1; d <= 7; d++) {
+                    const s = map[d];
+                    if (s && s.isAvailable) {
+                        const start = (s.startTime || '').substring(0, 5);
+                        const end = (s.endTime || '').substring(0, 5);
+                        html += `
+                            <div class="sched-card available">
+                                <div class="sched-day">
+                                    <i data-lucide="check-circle" style="width:14px;height:14px;color:#059669;vertical-align:middle;margin-right:0.3rem;"></i>
+                                    ${DAY_NAMES[d]}
+                                </div>
+                                <div class="sched-time">${start} — ${end}</div>
+                            </div>`;
+                    } else {
+                        html += `
+                            <div class="sched-card unavailable">
+                                <div class="sched-day">
+                                    <i data-lucide="x-circle" style="width:14px;height:14px;color:#9ca3af;vertical-align:middle;margin-right:0.3rem;"></i>
+                                    ${DAY_NAMES[d]}
+                                </div>
+                                <div class="sched-time">Dam olish kuni</div>
+                            </div>`;
+                    }
+                }
+                html += '</div>';
+                el.innerHTML = html;
+                lucide.createIcons();
+            } catch (e) {
+                el.innerHTML = `<div class="empty">Jadval yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
+
+        // ==================== HISTORY ====================
+        const PAGE_SIZE = 10;
+        let historyCurrentPage = 0;
+        let historyTotalPages = 0;
+
+        const STATUS_LABELS = {
+            PENDING: 'Kutilmoqda',
+            CONFIRMED: 'Tasdiqlangan',
+            COMPLETED: 'Yakunlangan',
+            CANCELLED: 'Bekor qilingan',
+            NO_SHOW: 'Kelmadi'
+        };
+
+        async function loadHistory(page) {
+            historyCurrentPage = page;
+            const listEl = document.getElementById('history-list');
+            const paginationEl = document.getElementById('history-pagination');
+            const badgeEl = document.getElementById('history-total-badge');
+            const statusFilter = document.getElementById('history-status-filter').value;
+
+            listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            paginationEl.innerHTML = '';
+            badgeEl.textContent = '';
+
+            try {
+                let url = `/api/${tenantId}/appointments/get-staff-appointments/${staffId}?page=${page}&size=${PAGE_SIZE}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                const res = await api(url, { method: 'GET' });
+                const appts = res.data || [];
+                historyTotalPages = res.totalPages || 1;
+                const total = res.totalCount ?? appts.length;
+
+                badgeEl.textContent = `Jami: ${total}`;
+
+                if (appts.length === 0) {
+                    listEl.innerHTML = '<div class="empty">Navbatlar topilmadi.</div>';
+                    renderHistoryPagination(paginationEl);
+                    return;
+                }
+
+                listEl.innerHTML = '';
+                appts.forEach(a => {
+                    const date = a.appointmentDate
+                        ? new Date(a.appointmentDate).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
+                        : '-';
+                    const start = (a.startTime || '').toString().substring(0, 5);
+                    const end = (a.endTime || '').toString().substring(0, 5);
+                    const time = a.formattedTime || (start && end ? `${start} – ${end}` : '-');
+                    const statusLabel = STATUS_LABELS[a.status] || a.status || '';
+
+                    const isManager = staffRole === 'MANAGER' || staffRole === 'OWNER';
+                    let histActions = '';
+                    if (isManager && a.status === 'PENDING') {
+                        histActions = `
+                            <div style="display:flex;gap:0.35rem;flex-wrap:wrap;justify-content:flex-end;margin-top:0.35rem;">
+                                <button class="action-btn confirm" onclick="confirmAppt('${a.id}','history')">
+                                    <i data-lucide="check" style="width:12px;height:12px;"></i> Tasdiqlash
+                                </button>
+                                <button class="action-btn reject" data-id="${a.id}" data-name="${(a.customerName||'').replace(/"/g,'&quot;')}" data-source="history" onclick="openRejectModalFromEl(this)">
+                                    <i data-lucide="x" style="width:12px;height:12px;"></i> Rad etish
+                                </button>
+                            </div>`;
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'appt-row';
+                    row.id = `hist-appt-${a.id}`;
+                    row.innerHTML = `
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:600;margin-bottom:0.25rem;">${a.serviceName || 'Xizmat'}</div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.2rem;">
+                                <i data-lucide="user" style="width:11px;height:11px;vertical-align:middle;"></i>
+                                ${a.customerName || '-'} &nbsp;&bull;&nbsp; ${a.customerPhone || ''}
+                            </div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);">
+                                <i data-lucide="calendar" style="width:11px;height:11px;vertical-align:middle;"></i>
+                                ${date} &bull; ${time}
+                            </div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <span class="status-badge status-${a.status || 'PENDING'}">${statusLabel}</span>
+                            <div style="font-weight:700;color:var(--primary);margin-top:0.3rem;font-size:0.9rem;">${a.formattedPrice || ''}</div>
+                            ${histActions}
+                        </div>
+                    `;
+                    listEl.appendChild(row);
+                });
+                lucide.createIcons();
+                renderHistoryPagination(paginationEl);
+            } catch (e) {
+                listEl.innerHTML = `<div class="empty">Yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
+
+        function renderHistoryPagination(container) {
+            if (historyTotalPages <= 1) return;
+            for (let i = 0; i < historyTotalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i + 1;
+                btn.className = 'btn';
+                btn.style.cssText = `padding:0.3rem 0.75rem;font-size:0.82rem;min-width:2.2rem;${i === historyCurrentPage ? 'background:var(--primary);color:#fff;border-color:var(--primary);' : 'border:1px solid var(--border);'}`;
+                btn.onclick = () => loadHistory(i);
+                container.appendChild(btn);
+            }
+        }
+
+        // ==================== STAFF PROFILE ====================
+        async function loadStaffProfile() {
+            const el = document.getElementById('profile-content-staff');
+            el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const res = await api(`/api/${tenantId}/staff/${staffId}/detail`, { method: 'GET' });
+                const s = res.data;
+                const services = s.services || [];
+
+                el.innerHTML = `
+                    <div class="card" style="max-width:560px;cursor:default;">
+                        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+                            <div style="width:52px;height:52px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i data-lucide="user" style="width:26px;height:26px;color:#fff;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:1rem;">${s.displayName || '-'}</div>
+                                <div style="font-size:0.83rem;color:var(--text-muted);">${s.position || '-'} · ${s.role || ''}</div>
+                            </div>
+                        </div>
+                        <div style="display:grid;gap:0.5rem;font-size:0.88rem;">
+                            <div style="display:flex;gap:0.5rem;">
+                                <span style="color:var(--text-muted);min-width:120px;">Salon:</span>
+                                <span style="font-weight:500;">${s.tenantName || '-'}</span>
+                            </div>
+                            <div style="display:flex;gap:0.5rem;">
+                                <span style="color:var(--text-muted);min-width:120px;">Holat:</span>
+                                <span style="font-weight:500;color:${s.isActive ? '#059669' : '#dc2626'};">
+                                    ${s.isActive ? 'Faol' : 'Nofaol'}
+                                </span>
+                            </div>
+                        </div>
+                        ${services.length > 0 ? `
+                        <div style="margin-top:1.25rem;">
+                            <div style="font-weight:600;font-size:0.9rem;margin-bottom:0.6rem;">Biriktirilgan xizmatlar</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                                ${services.map(sv => `
+                                    <span style="background:var(--bg-hover,#f0f4ff);border:1px solid var(--border);border-radius:0.4rem;padding:0.2rem 0.6rem;font-size:0.8rem;">
+                                        ${sv.name || '-'} · ${sv.duration || 0} min
+                                    </span>`).join('')}
+                            </div>
+                        </div>` : ''}
+                    </div>`;
+                lucide.createIcons();
+            } catch (e) {
+                el.innerHTML = `<div class="empty">Profil yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuthOrRedirect()) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appt-date').value = today;
+
+            try {
+                const me = await api('/api/auth/me', { method: 'GET' });
+                const user = me.data;
+
+                // Determine tenantId and staffId
+                if (user.staffTenantId && user.staffId) {
+                    tenantId = user.staffTenantId;
+                    staffId = user.staffId;
+                    staffRole = (user.roles || []).find(r => r === 'MANAGER') || 'STAFF';
+                } else if (user.tenantId && user.roles && user.roles.includes('OWNER')) {
+                    // Owner accessing staff dashboard? Redirect to manage panel
+                    window.location.href = `/dashboard/manage/${user.tenantSlug}`;
+                    return;
+                } else {
+                    renderError('page-error', 'Sizda hech qanday ish joyi mavjud emas.');
+                    document.getElementById('staff-loading').style.display = 'none';
+                    return;
+                }
+
+                // Load tenant info
+                const slugParts = window.location.pathname.split('/').filter(Boolean);
+                const slug = slugParts[slugParts.length - 1];
+                const tenantRes = await api(`/api/tenant/${slug}/by-slug`, { method: 'GET' });
+                const tenant = tenantRes.data;
+
+                // Load own staff detail for name/position
+                const staffRes = await api(`/api/${tenantId}/staff/${staffId}`, { method: 'GET' });
+                const staffData = staffRes.data;
+
+                // Populate header
+                document.getElementById('staff-name').textContent = staffData.displayName || user.fullName || '-';
+                document.getElementById('staff-role-badge').textContent =
+                    staffRole === 'MANAGER' ? 'Menejer' : 'Xodim';
+                document.getElementById('staff-position').textContent = staffData.position || '';
+                document.getElementById('tenant-name-label').textContent = tenant.organizationName || '';
+                document.getElementById('tenant-public-link').href = `/dashboard/tenant/${slug}`;
+
+                document.getElementById('staff-loading').style.display = 'none';
+                document.getElementById('staff-content').style.display = 'block';
+                lucide.createIcons();
+
+                loadToday();
+            } catch (e) {
+                document.getElementById('staff-loading').style.display = 'none';
+                renderError('page-error', e.message || 'Sahifani yuklashda xatolik');
+            }
+        });
+    </script>
+</section>
+</body>
+</html>

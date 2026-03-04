@@ -1,6 +1,8 @@
 package org.architect.multitenantappointmentsystem.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.architect.multitenantappointmentsystem.dto.*;
@@ -149,14 +151,14 @@ public class StaffController {
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<StaffResponse> staffPage = staffService.getStaffByTenantPaginated(tenantId, activeOnly, pageable);
-        return ResponseDto.ok(staffPage.getContent()).toResponseEntity();
+        return ResponseDto.ok(staffPage).toResponseEntity();
     }
 
     /**
      * Tenant va role bo'yicha stafflarni olish
      * GET /api/staff/by-tenant/{tenantId}/role/{role}
      */
-    @GetMapping("/by-tenant/role/{role}")
+    @GetMapping( "/by-tenant/role/{role}")
     public ResponseEntity<ResponseDto<List<StaffResponse>>> getStaffByRole(
             @PathVariable UUID tenantId,
             @PathVariable StaffRole role) {
@@ -211,7 +213,7 @@ public class StaffController {
     public ResponseEntity<ResponseDto<StaffScheduleResponse>> getStaffScheduleByDay(
             @PathVariable UUID tenantId,
             @PathVariable UUID staffId,
-            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek) {
+            @PathVariable @Min(1) @Max(7) Integer dayOfWeek) {
         StaffScheduleResponse schedule = staffService.getStaffScheduleByDay(tenantId, staffId, dayOfWeek);
         return ResponseDto.ok(schedule).toResponseEntity();
     }
@@ -224,7 +226,7 @@ public class StaffController {
     public ResponseEntity<ResponseDto<StaffScheduleResponse>> updateSchedule(
             @PathVariable UUID tenantId,
             @PathVariable UUID staffId,
-            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek,
+            @PathVariable @Min(1) @Max(7) Integer dayOfWeek,
             @Valid @RequestBody UpdateStaffScheduleRequest request) {
         StaffScheduleResponse response = staffService.updateSchedule(tenantId, staffId, dayOfWeek, request);
         return ResponseDto.ok(response).toResponseEntity();
@@ -238,7 +240,7 @@ public class StaffController {
     public ResponseEntity<ResponseDto<String>> deleteSchedule(
             @PathVariable UUID tenantId,
             @PathVariable UUID staffId,
-            @PathVariable @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(7) Integer dayOfWeek) {
+            @PathVariable @Min(1) @Max(7) Integer dayOfWeek) {
         staffService.deleteSchedule(tenantId, staffId, dayOfWeek);
         return ResponseDto.ok("", "Schedule muvaffaqiyatli o'chirildi").toResponseEntity();
     }

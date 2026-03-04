@@ -19,7 +19,7 @@ public record CreateTenantRequest(
         String email,
 
         @NotBlank(message = "Telefon bo'sh bo'lmasligi kerak")
-        @Pattern(regexp = "^+998[0-9]{9}$")
+        @Pattern(regexp = "^\\+998[0-9]{9}$")
         String phone,
 
         @NotBlank(message = "Manzil bo'sh bo'lmasligi kerak")
@@ -27,11 +27,9 @@ public record CreateTenantRequest(
         String address,
 
         @NotNull(message = "Ish boshlanish vaqti kerak")
-        @JsonFormat(pattern = "HH:mm")
         LocalTime workingHoursStart,
 
         @NotNull(message = "Ish tugash vaqti kerak")
-        @JsonFormat(pattern = "HH:mm")
         LocalTime workingHoursEnd,
 
         @NotNull(message = "Slot davomiyligi kerak")

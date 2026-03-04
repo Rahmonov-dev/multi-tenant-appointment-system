@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: html(title='Boshqaruv Paneli - Appointment System', content=~{::section})}">
+
+<body>
+    <section>
+        <div id="page-error" class="error-box"></div>
+
+        <div id="manage-loading" class="loading" style="margin: 3rem auto; width: fit-content;">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="manage-content" style="display:none;">
+
+            <!-- Header -->
+            <div class="page-header"
+                style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                <div>
+                    <h1 class="page-title" id="tenant-name" style="margin:0;">Boshqaruv Paneli</h1>
+                    <p id="tenant-info" style="color:var(--text-muted);margin:0.2rem 0;font-size:0.88rem;"></p>
+                </div>
+                <a id="tenant-public-link" href="#" class="btn-sm"
+                    style="display:inline-flex;align-items:center;gap:0.4rem;">
+                    <i data-lucide="external-link" style="width:14px;height:14px;"></i> Ommaviy sahifa
+                </a>
+            </div>
+
+            <!-- Tabs -->
+            <div
+                style="display:flex;gap:0.25rem;margin:1.5rem 0 1.25rem;border-bottom:2px solid var(--border);overflow-x:auto;">
+                <button class="m-tab m-tab-active" data-tab="overview" onclick="switchManageTab('overview')">
+                    <i data-lucide="bar-chart-3" style="width:14px;height:14px;"></i> Umumiy
+                </button>
+                <button class="m-tab" data-tab="staff" onclick="switchManageTab('staff')">
+                    <i data-lucide="users" style="width:14px;height:14px;"></i> Xodimlar
+                </button>
+                <button class="m-tab" data-tab="services" onclick="switchManageTab('services')">
+                    <i data-lucide="briefcase" style="width:14px;height:14px;"></i> Xizmatlar
+                </button>
+                <button class="m-tab" data-tab="appointments" onclick="switchManageTab('appointments')">
+                    <i data-lucide="calendar-check" style="width:14px;height:14px;"></i> Navbatlar
+                </button>
+                <button class="m-tab" data-tab="settings" onclick="switchManageTab('settings')">
+                    <i data-lucide="settings" style="width:14px;height:14px;"></i> Sozlamalar
+                </button>
+            </div>
+
+            <!-- ===== TAB: Overview ===== -->
+            <div id="panel-overview" class="tab-panel">
+                <div id="stats-container"
+                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;">
+                </div>
+                <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">Bugungi navbatlar</h3>
+                <div id="today-appointments"></div>
+            </div>
+
+            <!-- ===== TAB: Staff ===== -->
+            <div id="panel-staff" class="tab-panel" style="display:none;">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+                    <h3 style="font-size:1rem;font-weight:600;margin:0;">Xodimlar ro'yxati</h3>
+                    <button onclick="toggleStaffForm()" class="btn-sm">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Yangi xodim
+                    </button>
+                </div>
+
+                <!-- Staff Create Form -->
+                <div id="staff-form-container" style="display:none;">
+                    <div class="card" style="cursor:default;max-width:600px;margin-bottom:1.5rem;">
+                        <h4 style="margin:0 0 1rem;font-size:0.95rem;font-weight:600;">Yangi xodim qo'shish</h4>
+
+                        <!-- Step 1: Email search -->
+                        <div id="staff-step1">
+                            <div class="form-group">
+                                <label class="label">Foydalanuvchi emaili *</label>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <input type="email" id="staff-email" class="input" placeholder="user@mail.com"
+                                        style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupUserByEmail();}">
+                                    <button type="button" onclick="lookupUserByEmail()" class="btn btn-primary"
+                                        id="lookup-btn" style="white-space:nowrap;">Qidirish</button>
+                                </div>
+                            </div>
+                            <div id="staff-lookup-error" class="error-box"></div>
+                        </div>
+
+                        <!-- Step 2: Create form (shown after user found) -->
+                        <div id="staff-step2" style="display:none;">
+                            <div id="found-user-info"
+                                style="background:var(--bg-main);border:1px solid var(--border);border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;font-size:0.88rem;color:var(--text-muted);">
+                            </div>
+                            <form id="create-staff-form">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                                    <div class="form-group">
+                                        <label class="label">Ko'rinadigan ism *</label>
+                                        <input type="text" id="staff-display-name" class="input" required
+                                            placeholder="Sardor" maxlength="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="label">Lavozim *</label>
+                                        <input type="text" id="staff-position" class="input" required
+                                            placeholder="Sartarosh" maxlength="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="label">Rol *</label>
+                                        <select id="staff-role" class="input" required>
+                                            <option value="STAFF">Xodim</option>
+                                            <option value="MANAGER">Menejer</option>
+                                            <option value="ADMIN">Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="staff-form-error" class="error-box"></div>
+                                <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+                                    <button type="submit" class="btn btn-primary" id="create-staff-btn">Qo'shish</button>
+                                    <button type="button" onclick="resetStaffForm()" class="btn-sm"
+                                        style="background:transparent;border:1px solid var(--border);color:var(--text-main);">Bekor
+                                        qilish</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="staff-list"></div>
+            </div>
+
+            <!-- ===== TAB: Services ===== -->
+            <div id="panel-services" class="tab-panel" style="display:none;">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+                    <h3 style="font-size:1rem;font-weight:600;margin:0;">Xizmatlar ro'yxati</h3>
+                    <button onclick="showNewServiceForm()" class="btn-sm">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Yangi xizmat
+                    </button>
+                </div>
+
+                <!-- Service Create/Edit Form -->
+                <div id="service-form-container" style="display:none;">
+                    <div class="card" style="cursor:default;max-width:580px;margin-bottom:1.5rem;">
+                        <h4 id="service-form-title" style="margin:0 0 1rem;font-size:0.95rem;font-weight:600;">Yangi
+                            xizmat qo'shish</h4>
+                        <form id="create-service-form">
+                            <input type="hidden" id="edit-service-id">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="label">Xizmat nomi *</label>
+                                    <input type="text" id="svc-name" class="input" required
+                                        placeholder="Soch turmaklash" maxlength="200">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="label">Tavsif</label>
+                                    <textarea id="svc-description" class="input" rows="2"
+                                        placeholder="Qisqacha tavsif..." maxlength="5000"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Davomiylik (daqiqa) *</label>
+                                    <input type="number" id="svc-duration" class="input" required min="5" max="480"
+                                        value="30">
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Narx (so'm) *</label>
+                                    <input type="number" id="svc-price" class="input" required min="0" step="1000"
+                                        placeholder="50000">
+                                </div>
+                            </div>
+                            <div id="service-form-error" class="error-box"></div>
+                            <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+                                <button type="submit" class="btn btn-primary" id="create-svc-btn">Saqlash</button>
+                                <button type="button" onclick="cancelServiceEdit()" class="btn-sm"
+                                    style="background:transparent;border:1px solid var(--border);color:var(--text-main);">Bekor
+                                    qilish</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="services-list"></div>
+            </div>
+
+            <!-- ===== TAB: Appointments ===== -->
+            <div id="panel-appointments" class="tab-panel" style="display:none;">
+                <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="label">Sana</label>
+                        <input type="date" id="appt-date-filter" class="input" style="min-width:160px;">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="label">Status</label>
+                        <select id="appt-status-filter" class="input">
+                            <option value="">Barcha statuslar</option>
+                            <option value="PENDING">Kutilmoqda</option>
+                            <option value="CONFIRMED">Tasdiqlangan</option>
+                            <option value="COMPLETED">Yakunlangan</option>
+                            <option value="CANCELLED">Bekor qilingan</option>
+                            <option value="NO_SHOW">No Show</option>
+                        </select>
+                    </div>
+                    <button onclick="loadAppointments()"
+                        style="padding:0.5rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-size:0.85rem;display:inline-flex;align-items:center;gap:0.4rem;">
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> Ko'rish
+                    </button>
+                </div>
+                <div id="manage-appointments-list"></div>
+            </div>
+
+            <!-- ===== TAB: Settings ===== -->
+            <div id="panel-settings" class="tab-panel" style="display:none;">
+                <div class="card" style="cursor:default;max-width:660px;">
+                    <h3 style="font-size:1rem;font-weight:600;margin:0 0 1.25rem;">Tashkilot sozlamalari</h3>
+                    <form id="settings-form">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label class="label">Tashkilot nomi *</label>
+                                <input type="text" id="s-org-name" class="input" required maxlength="200">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Email</label>
+                                <input type="email" id="s-email" class="input" maxlength="200">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Telefon</label>
+                                <input type="tel" id="s-phone" class="input" maxlength="20">
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label class="label">Manzil</label>
+                                <input type="text" id="s-address" class="input" maxlength="500">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Ish vaqti boshi</label>
+                                <input type="time" id="s-hours-start" class="input">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Ish vaqti tugashi</label>
+                                <input type="time" id="s-hours-end" class="input">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Slot davomiyligi (daqiqa)</label>
+                                <input type="number" id="s-slot-duration" class="input" min="15" max="240" step="5">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Oldindan band qilish (kun)</label>
+                                <input type="number" id="s-advance-days" class="input" min="1" max="365">
+                            </div>
+                            <div class="form-group"
+                                style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;">
+                                <input type="checkbox" id="s-auto-confirm"
+                                    style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary);">
+                                <label for="s-auto-confirm" class="label"
+                                    style="margin:0;cursor:pointer;font-weight:400;">Navbatlarni avtomatik
+                                    tasdiqlash</label>
+                            </div>
+                        </div>
+                        <div id="settings-form-error" class="error-box"></div>
+                        <div style="margin-top:1.25rem;">
+                            <button type="submit" class="btn btn-primary" id="save-settings-btn">Saqlash</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== Schedule Modal ===== -->
+        <div id="schedule-modal"
+            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;overflow-y:auto;padding:1rem;">
+            <div
+                style="background:var(--bg-card,var(--bg-main));border-radius:1rem;padding:1.5rem;max-width:660px;margin:1rem auto;position:relative;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                    <h3 id="schedule-modal-title" style="margin:0;font-size:1rem;font-weight:600;">Ish jadvali</h3>
+                    <button onclick="closeScheduleModal()"
+                        style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.25rem;">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                </div>
+                <div id="schedule-modal-content"></div>
+            </div>
+        </div>
+
+        <!-- ===== Staff Edit Modal ===== -->
+        <div id="staff-edit-modal"
+            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;overflow-y:auto;padding:1rem;">
+            <div
+                style="background:var(--bg-card,var(--bg-main));border-radius:1rem;padding:1.5rem;max-width:480px;margin:2rem auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                    <h3 style="margin:0;font-size:1rem;font-weight:600;">Xodimni tahrirlash</h3>
+                    <button onclick="closeStaffEditModal()"
+                        style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.25rem;">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                </div>
+                <form id="staff-edit-form">
+                    <input type="hidden" id="edit-staff-id">
+                    <div style="display:grid;gap:1rem;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="label">Ko'rinadigan ism *</label>
+                            <input type="text" id="edit-staff-display-name" class="input" required maxlength="100">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="label">Lavozim *</label>
+                            <input type="text" id="edit-staff-position" class="input" required maxlength="100">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="label">Rol</label>
+                            <select id="edit-staff-role" class="input">
+                                <option value="STAFF">Xodim</option>
+                                <option value="MANAGER">Menejer</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="staff-edit-error" class="error-box"></div>
+                    <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
+                        <button type="submit" class="btn btn-primary" id="save-staff-edit-btn">Saqlash</button>
+                        <button type="button" onclick="closeStaffEditModal()" class="btn-sm"
+                            style="background:transparent;border:1px solid var(--border);color:var(--text-main);">Bekor
+                            qilish</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== Service Assignment Modal ===== -->
+        <!-- ===== Cancel Reason Modal ===== -->
+        <div id="cancel-reason-modal"
+            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1100;overflow-y:auto;padding:1rem;">
+            <div style="background:var(--bg-card,var(--bg-main));border-radius:1rem;padding:1.5rem;max-width:440px;margin:3rem auto;position:relative;">
+                <button onclick="closeCancelReasonModal()"
+                    style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                    <i data-lucide="x" style="width:20px;height:20px;"></i>
+                </button>
+                <h3 style="margin:0 0 0.25rem;font-size:1rem;font-weight:600;color:#991b1b;">
+                    <i data-lucide="x-circle" style="width:15px;height:15px;vertical-align:middle;"></i>
+                    Navbatni bekor qilish
+                </h3>
+                <p id="cancel-reason-appt-info" style="font-size:0.85rem;color:var(--text-muted);margin:0.5rem 0 1rem;"></p>
+                <div class="form-group">
+                    <label class="label">Sabab <span style="color:#dc2626;">*</span></label>
+                    <textarea id="cancel-reason-input" class="input" style="height:90px;"
+                        placeholder="Bekor qilish sababini kiriting..."></textarea>
+                </div>
+                <div id="cancel-reason-error" style="color:#dc2626;font-size:0.82rem;margin-bottom:0.5rem;display:none;"></div>
+                <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                    <button onclick="closeCancelReasonModal()" class="btn" style="flex:1;border:1px solid var(--border);">Bekor</button>
+                    <button onclick="submitCancelWithReason()" id="cancel-reason-submit-btn" class="btn"
+                        style="flex:1;background:#dc2626;color:#fff;border:none;">
+                        Bekor qilish
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="service-assign-modal"
+            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;overflow-y:auto;padding:1rem;">
+            <div
+                style="background:var(--bg-card,var(--bg-main));border-radius:1rem;padding:1.5rem;max-width:520px;margin:2rem auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                    <h3 id="service-assign-title" style="margin:0;font-size:1rem;font-weight:600;">Xizmatlarni biriktirish</h3>
+                    <button onclick="closeServiceAssignModal()"
+                        style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.25rem;">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.83rem;color:var(--text-muted);margin:0 0 1rem;">
+                    Xodim bajara oladigan xizmatlarni belgilang. Faqat biriktirilgan xizmatlar bo'yicha mijozlar navbat ola oladi.
+                </p>
+                <div id="service-assign-list"></div>
+                <div id="service-assign-error" class="error-box"></div>
+                <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
+                    <button onclick="saveServiceAssignment()" class="btn btn-primary" id="save-assign-btn">Saqlash</button>
+                    <button type="button" onclick="closeServiceAssignModal()" class="btn-sm"
+                        style="background:transparent;border:1px solid var(--border);color:var(--text-main);">Bekor qilish</button>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .m-tab {
+                padding: 0.55rem 1rem;
+                background: transparent;
+                border: none;
+                border-bottom: 2px solid transparent;
+                cursor: pointer;
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: var(--text-muted);
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                margin-bottom: -2px;
+                transition: color 0.2s, border-color 0.2s;
+                white-space: nowrap;
+            }
+
+            .m-tab:hover {
+                color: var(--text-main);
+            }
+
+            .m-tab-active {
+                color: var(--primary) !important;
+                border-bottom-color: var(--primary) !important;
+            }
+
+            .stat-card {
+                background: var(--bg-card, var(--bg-main));
+                border: 1px solid var(--border);
+                border-radius: 0.75rem;
+                padding: 1.25rem;
+                text-align: center;
+            }
+
+            .stat-card .stat-value {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: var(--primary);
+            }
+
+            .stat-card .stat-label {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                margin-top: 0.25rem;
+            }
+
+            .data-row {
+                background: var(--bg-card, var(--bg-main));
+                border: 1px solid var(--border);
+                border-radius: 0.75rem;
+                padding: 1rem 1.25rem;
+                margin-bottom: 0.6rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .data-row .data-info {
+                flex: 1;
+                min-width: 200px;
+            }
+
+            .data-row .data-info strong {
+                display: block;
+                margin-bottom: 0.15rem;
+            }
+
+            .data-row .data-info small {
+                color: var(--text-muted);
+                font-size: 0.82rem;
+            }
+
+            .data-row .data-actions {
+                display: flex;
+                gap: 0.4rem;
+                flex-wrap: wrap;
+            }
+
+            .action-btn {
+                padding: 0.3rem 0.7rem;
+                font-size: 0.78rem;
+                border-radius: 0.4rem;
+                border: 1px solid var(--border);
+                background: var(--bg-main);
+                color: var(--text-main);
+                cursor: pointer;
+                transition: background 0.15s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .action-btn:hover {
+                background: var(--border);
+            }
+
+            .action-btn.danger {
+                color: #dc2626;
+                border-color: #fca5a5;
+            }
+
+            .action-btn.danger:hover {
+                background: #fee2e2;
+            }
+
+            .action-btn.success {
+                color: #16a34a;
+                border-color: #86efac;
+            }
+
+            .action-btn.success:hover {
+                background: #dcfce7;
+            }
+
+            .action-btn.primary {
+                color: var(--primary);
+                border-color: var(--primary);
+            }
+
+            .action-btn.primary:hover {
+                background: #ede9fe;
+            }
+
+            .appt-row {
+                background: var(--bg-card, var(--bg-main));
+                border: 1px solid var(--border);
+                border-radius: 0.75rem;
+                padding: 1rem 1.25rem;
+                margin-bottom: 0.6rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.6rem;
+                border-radius: 999px;
+                font-weight: 600;
+                display: inline-block;
+            }
+
+            .status-PENDING {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-CONFIRMED {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-COMPLETED {
+                background: #e0e7ff;
+                color: #3730a3;
+            }
+
+            .status-CANCELLED {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .status-NO_SHOW {
+                background: #f3f4f6;
+                color: #6b7280;
+            }
+
+            .inactive-badge {
+                opacity: 0.55;
+            }
+
+            .role-badge {
+                display: inline-block;
+                padding: 0.1rem 0.45rem;
+                border-radius: 999px;
+                font-size: 0.72rem;
+                font-weight: 600;
+                background: var(--border);
+                color: var(--text-muted);
+            }
+
+            .sched-row {
+                display: grid;
+                grid-template-columns: 110px 1fr 1fr auto;
+                gap: 0.6rem;
+                align-items: center;
+                padding: 0.6rem 0.75rem;
+                background: var(--bg-main);
+                border-radius: 0.5rem;
+                border: 1px solid var(--border);
+                margin-bottom: 0.4rem;
+            }
+
+            @media (max-width: 480px) {
+                .sched-row {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+        </style>
+
+        <script>
+            let tenantId = null;
+            let tenantSlug = null;
+            let tenantData = null;
+            let currentManageTab = 'overview';
+            let foundUserId = null;
+            let currentEditServiceId = null;
+            let currentScheduleStaffId = null;
+            const servicesCache = {};
+
+            // ==================== TAB SWITCHING ====================
+            function switchManageTab(tab) {
+                currentManageTab = tab;
+                document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('m-tab-active'));
+                document.querySelector(`.m-tab[data-tab="${tab}"]`).classList.add('m-tab-active');
+                document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+                document.getElementById(`panel-${tab}`).style.display = 'block';
+
+                if (tab === 'overview') loadOverview();
+                else if (tab === 'staff') loadStaff();
+                else if (tab === 'services') loadServices();
+                else if (tab === 'appointments') loadAppointments();
+                else if (tab === 'settings') loadSettings();
+
+                lucide.createIcons();
+            }
+
+            // ==================== OVERVIEW ====================
+            async function loadOverview() {
+                const sc = document.getElementById('stats-container');
+                const tc = document.getElementById('today-appointments');
+                sc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                tc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+                try {
+                    const stats = await api(`/api/${tenantId}/appointments/statistics`, { method: 'GET' });
+                    const d = stats.data || {};
+                    sc.innerHTML = `
+                        <div class="stat-card"><div class="stat-value">${d.totalAppointments ?? 0}</div><div class="stat-label">Jami navbatlar</div></div>
+                        <div class="stat-card"><div class="stat-value">${d.pendingAppointments ?? 0}</div><div class="stat-label">Kutilmoqda</div></div>
+                        <div class="stat-card"><div class="stat-value">${d.confirmedAppointments ?? 0}</div><div class="stat-label">Tasdiqlangan</div></div>
+                        <div class="stat-card"><div class="stat-value">${d.completedAppointments ?? 0}</div><div class="stat-label">Yakunlangan</div></div>
+                        <div class="stat-card"><div class="stat-value">${d.cancelledAppointments ?? 0}</div><div class="stat-label">Bekor qilingan</div></div>
+                    `;
+                } catch (e) {
+                    sc.innerHTML = `<div class="empty">Statistikani yuklashda xatolik: ${e.message}</div>`;
+                }
+
+                try {
+                    const today = await api(`/api/${tenantId}/appointments/today`, { method: 'GET' });
+                    renderAppointmentRows(today.data || [], tc, true);
+                } catch (e) {
+                    tc.innerHTML = `<div class="empty">Bugungi navbatlarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            // ==================== STAFF ====================
+            function toggleStaffForm() {
+                const c = document.getElementById('staff-form-container');
+                if (c.style.display === 'none') {
+                    c.style.display = 'block';
+                    lucide.createIcons();
+                } else {
+                    resetStaffForm();
+                }
+            }
+
+            function resetStaffForm() {
+                foundUserId = null;
+                document.getElementById('staff-email').value = '';
+                document.getElementById('staff-step2').style.display = 'none';
+                document.getElementById('staff-step1').style.display = 'block';
+                clearError('staff-lookup-error');
+                clearError('staff-form-error');
+                const f = document.getElementById('create-staff-form');
+                if (f) f.reset();
+                document.getElementById('staff-form-container').style.display = 'none';
+            }
+
+            async function lookupUserByEmail() {
+                const email = document.getElementById('staff-email').value.trim();
+                if (!email) { renderError('staff-lookup-error', 'Email kiriting'); return; }
+                clearError('staff-lookup-error');
+                const btn = document.getElementById('lookup-btn');
+                btn.disabled = true;
+                btn.textContent = 'Qidirilmoqda...';
+
+                try {
+                    const result = await api(`/api/auth/find-by-email?email=${encodeURIComponent(email)}`, { method: 'GET' });
+                    const user = result.data;
+                    foundUserId = user.id;
+                    document.getElementById('found-user-info').innerHTML =
+                        `<strong style="color:var(--text-main);">✓ Foydalanuvchi topildi:</strong> ${user.firstName} ${user.lastName} &mdash; ${user.email}`;
+                    document.getElementById('staff-display-name').value = `${user.firstName} ${user.lastName}`;
+                    document.getElementById('staff-step2').style.display = 'block';
+                    document.getElementById('staff-display-name').focus();
+                } catch (err) {
+                    renderError('staff-lookup-error', err.message || 'Foydalanuvchi topilmadi');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Qidirish';
+                }
+            }
+
+            async function loadStaff() {
+                const container = document.getElementById('staff-list');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                try {
+                    const result = await api(`/api/${tenantId}/staff/by-tenant?activeOnly=false`, { method: 'GET' });
+                    const list = result.data || [];
+                    if (list.length === 0) {
+                        container.innerHTML = '<div class="empty">Xodimlar topilmadi. Yuqoridagi tugma orqali xodim qo\'shing.</div>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    list.forEach(s => {
+                        const isActive = s.isActive !== false;
+                        const schedCount = (s.scheduleResponse || []).filter(sc => sc.isAvailable).length;
+                        const div = document.createElement('div');
+                        div.className = `data-row ${isActive ? '' : 'inactive-badge'}`;
+                        div.setAttribute('data-staff-id', s.id);
+                        div.innerHTML = `
+                            <div class="data-info">
+                                <strong>${esc(s.displayName || '-')}</strong>
+                                <small>${esc(s.position || '-')} &middot; <span class="role-badge">${s.role || '-'}</span></small>
+                                <small style="margin-top:0.15rem;display:block;">${esc(s.userFullName || '')} &middot; ${s.totalServices ?? 0} xizmat &middot; ${schedCount} kun faol</small>
+                            </div>
+                            <div class="data-actions">
+                                <button class="action-btn primary" onclick="openStaffEditModal('${s.id}','${esc(s.displayName||'')}','${esc(s.position||'')}','${s.role||'STAFF'}')">
+                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Tahrirlash
+                                </button>
+                                <button class="action-btn" onclick="openScheduleModal('${s.id}','${esc(s.displayName||'')}')">
+                                    <i data-lucide="calendar" style="width:12px;height:12px;"></i> Jadval
+                                </button>
+                                <button class="action-btn" onclick="openServiceAssignModal('${s.id}','${esc(s.displayName||'')}')">
+                                    <i data-lucide="link" style="width:12px;height:12px;"></i> Xizmatlar
+                                </button>
+                                ${isActive
+                                ? `<button class="action-btn danger" onclick="toggleStaffActive('${s.id}',false)">Deaktiv</button>`
+                                : `<button class="action-btn success" onclick="toggleStaffActive('${s.id}',true)">Aktiv</button>`}
+                                ${s.role !== 'OWNER' ? `<button class="action-btn danger" onclick="deleteStaff('${s.id}')">O'chirish</button>` : ''}
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    container.innerHTML = `<div class="empty">Xodimlarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            async function toggleStaffActive(staffId, activate) {
+                try {
+                    await api(`/api/${tenantId}/staff/${staffId}/${activate ? 'activate' : 'deactivate'}`, { method: 'PUT' });
+                    toast(activate ? 'Xodim aktivlashtirildi' : 'Xodim deaktivlashtirildi', 'success');
+                    loadStaff();
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                }
+            }
+
+            async function deleteStaff(staffId) {
+                if (!confirm("Xodimni o'chirishni tasdiqlaysizmi?")) return;
+                try {
+                    await api(`/api/${tenantId}/staff/${staffId}`, { method: 'DELETE' });
+                    toast("Xodim o'chirildi", 'success');
+                    loadStaff();
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                }
+            }
+
+            document.getElementById('create-staff-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!foundUserId) {
+                    renderError('staff-form-error', 'Avval foydalanuvchini email orqali qidiring');
+                    return;
+                }
+                clearError('staff-form-error');
+                const btn = document.getElementById('create-staff-btn');
+                btn.disabled = true; btn.textContent = 'Yuklanmoqda...';
+
+                try {
+                    await api(`/api/${tenantId}/staff`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            userId: foundUserId,
+                            displayName: document.getElementById('staff-display-name').value.trim(),
+                            position: document.getElementById('staff-position').value.trim(),
+                            role: document.getElementById('staff-role').value,
+                            schedule: []
+                        })
+                    });
+                    toast("Xodim muvaffaqiyatli qo'shildi!", 'success');
+                    resetStaffForm();
+                    loadStaff();
+                } catch (err) {
+                    renderError('staff-form-error', err.message || 'Xodim yaratishda xatolik');
+                } finally {
+                    btn.disabled = false; btn.textContent = "Qo'shish";
+                }
+            });
+
+            // Staff Edit Modal
+            function openStaffEditModal(staffId, displayName, position, role) {
+                document.getElementById('edit-staff-id').value = staffId;
+                document.getElementById('edit-staff-display-name').value = displayName;
+                document.getElementById('edit-staff-position').value = position;
+                document.getElementById('edit-staff-role').value = role;
+                clearError('staff-edit-error');
+                document.getElementById('staff-edit-modal').style.display = 'block';
+                lucide.createIcons();
+            }
+
+            function closeStaffEditModal() {
+                document.getElementById('staff-edit-modal').style.display = 'none';
+            }
+
+            document.getElementById('staff-edit-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('staff-edit-error');
+                const staffId = document.getElementById('edit-staff-id').value;
+                const btn = document.getElementById('save-staff-edit-btn');
+                btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+
+                try {
+                    await api(`/api/${tenantId}/staff/${staffId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            displayName: document.getElementById('edit-staff-display-name').value.trim(),
+                            position: document.getElementById('edit-staff-position').value.trim(),
+                            role: document.getElementById('edit-staff-role').value
+                        })
+                    });
+                    toast("Xodim ma'lumotlari yangilandi", 'success');
+                    closeStaffEditModal();
+                    loadStaff();
+                } catch (err) {
+                    renderError('staff-edit-error', err.message || 'Xatolik');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Saqlash';
+                }
+            });
+
+            // ==================== SCHEDULE MODAL ====================
+            const DAY_NAMES = ['', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+
+            async function openScheduleModal(staffId, staffName) {
+                currentScheduleStaffId = staffId;
+                document.getElementById('schedule-modal-title').textContent = `${staffName} — Ish jadvali`;
+                document.getElementById('schedule-modal-content').innerHTML =
+                    '<div class="loading"><div class="spinner"></div></div>';
+                document.getElementById('schedule-modal').style.display = 'block';
+
+                try {
+                    const result = await api(`/api/${tenantId}/staff/${staffId}/schedules`, { method: 'GET' });
+                    renderScheduleForm(result.data || []);
+                } catch (e) {
+                    document.getElementById('schedule-modal-content').innerHTML =
+                        `<div class="empty">Jadvallarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            function renderScheduleForm(schedules) {
+                const scheduleMap = {};
+                schedules.forEach(s => { scheduleMap[s.dayOfWeek] = s; });
+
+                let html = '';
+                for (let day = 1; day <= 7; day++) {
+                    const s = scheduleMap[day];
+                    const isAvail = s ? s.isAvailable : false;
+                    const start = s ? (s.startTime || '09:00') : '09:00';
+                    const end = s ? (s.endTime || '18:00') : '18:00';
+                    html += `
+                        <div class="sched-row">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <input type="checkbox" id="sched-avail-${day}" ${isAvail ? 'checked' : ''}
+                                    style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);"
+                                    onchange="toggleSchedDay(${day})">
+                                <label for="sched-avail-${day}" style="font-size:0.85rem;font-weight:500;cursor:pointer;">${DAY_NAMES[day]}</label>
+                            </div>
+                            <input type="time" id="sched-start-${day}" value="${start}" class="input"
+                                style="font-size:0.83rem;padding:0.35rem 0.5rem;" ${!isAvail ? 'disabled' : ''}>
+                            <input type="time" id="sched-end-${day}" value="${end}" class="input"
+                                style="font-size:0.83rem;padding:0.35rem 0.5rem;" ${!isAvail ? 'disabled' : ''}>
+                            <button type="button" class="action-btn success" id="sched-save-${day}"
+                                onclick="saveScheduleDay(${day})">Saqlash</button>
+                        </div>
+                    `;
+                }
+                html += '<div id="schedule-save-msg" style="margin-top:0.75rem;"></div>';
+                document.getElementById('schedule-modal-content').innerHTML = html;
+            }
+
+            function toggleSchedDay(day) {
+                const avail = document.getElementById(`sched-avail-${day}`).checked;
+                document.getElementById(`sched-start-${day}`).disabled = !avail;
+                document.getElementById(`sched-end-${day}`).disabled = !avail;
+            }
+
+            async function saveScheduleDay(day) {
+                const staffId = currentScheduleStaffId;
+                const isAvailable = document.getElementById(`sched-avail-${day}`).checked;
+                const startTime = document.getElementById(`sched-start-${day}`).value;
+                const endTime = document.getElementById(`sched-end-${day}`).value;
+
+                if (!startTime || !endTime) { toast("Vaqtni to'ldiring", 'error'); return; }
+
+                const btn = document.getElementById(`sched-save-${day}`);
+                btn.disabled = true; btn.textContent = '...';
+
+                const toT = v => v && v.length === 5 ? v + ':00' : v;
+                try {
+                    await api(`/api/${tenantId}/staff/${staffId}/schedules`, {
+                        method: 'POST',
+                        body: JSON.stringify({ dayOfWeek: day, startTime: toT(startTime), endTime: toT(endTime), isAvailable })
+                    });
+                    toast(`${DAY_NAMES[day]} jadvali saqlandi`, 'success');
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Saqlash';
+                }
+            }
+
+            function closeScheduleModal() {
+                document.getElementById('schedule-modal').style.display = 'none';
+                currentScheduleStaffId = null;
+                if (currentManageTab === 'staff') loadStaff();
+            }
+
+            // ==================== SERVICE ASSIGNMENT MODAL ====================
+            let currentAssignStaffId = null;
+            let previouslyAssignedIds = new Set();
+
+            async function openServiceAssignModal(staffId, staffName) {
+                currentAssignStaffId = staffId;
+                previouslyAssignedIds = new Set();
+                document.getElementById('service-assign-title').textContent = `${staffName} — Xizmatlarni biriktirish`;
+                document.getElementById('service-assign-list').innerHTML =
+                    '<div class="loading"><div class="spinner"></div></div>';
+                clearError('service-assign-error');
+                document.getElementById('service-assign-modal').style.display = 'block';
+                lucide.createIcons();
+
+                try {
+                    const [allRes, detailRes] = await Promise.all([
+                        api(`/api/${tenantId}/services/by-tenant?activeOnly=false`, { method: 'GET' }),
+                        api(`/api/${tenantId}/staff/${staffId}/detail`, { method: 'GET' })
+                    ]);
+
+                    const allServices = allRes.data || [];
+                    previouslyAssignedIds = new Set((detailRes.data?.services || []).map(s => s.id));
+
+                    if (allServices.length === 0) {
+                        document.getElementById('service-assign-list').innerHTML =
+                            '<div class="empty">Hech qanday xizmat topilmadi. Avval "Xizmatlar" bo\'limida xizmat qo\'shing.</div>';
+                        return;
+                    }
+
+                    const container = document.getElementById('service-assign-list');
+                    container.innerHTML = '';
+                    allServices.forEach(svc => {
+                        const checked = previouslyAssignedIds.has(svc.id);
+                        const isActive = svc.isActive !== false;
+                        const price = svc.price ? Number(svc.price).toLocaleString('uz-UZ') + " so'm" : '';
+                        const row = document.createElement('label');
+                        row.style.cssText = `display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.75rem;border:1px solid ${checked ? 'var(--primary)' : 'var(--border)'};border-radius:0.5rem;margin-bottom:0.4rem;cursor:pointer;transition:border-color 0.15s;${!isActive ? 'opacity:0.55;' : ''}`;
+                        row.innerHTML = `
+                            <input type="checkbox" value="${svc.id}" ${checked ? 'checked' : ''}
+                                style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:500;font-size:0.88rem;">${esc(svc.name || '-')}</div>
+                                <div style="font-size:0.78rem;color:var(--text-muted);">${svc.duration || 0} daqiqa${price ? ' · ' + price : ''}${!isActive ? ' · <em>Nofaol</em>' : ''}</div>
+                            </div>
+                        `;
+                        const cb = row.querySelector('input');
+                        cb.addEventListener('change', () => {
+                            row.style.borderColor = cb.checked ? 'var(--primary)' : 'var(--border)';
+                        });
+                        container.appendChild(row);
+                    });
+                } catch (e) {
+                    document.getElementById('service-assign-list').innerHTML =
+                        `<div class="empty">Xizmatlarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            async function saveServiceAssignment() {
+                clearError('service-assign-error');
+                const btn = document.getElementById('save-assign-btn');
+                btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+
+                const checkboxes = document.querySelectorAll('#service-assign-list input[type="checkbox"]');
+                const nowChecked = new Set(Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value));
+
+                // Calculate diff
+                const toAdd = [...nowChecked].filter(id => !previouslyAssignedIds.has(id));
+                const toRemove = [...previouslyAssignedIds].filter(id => !nowChecked.has(id));
+
+                try {
+                    // Remove unselected services one by one
+                    await Promise.all(toRemove.map(svcId =>
+                        api(`/api/${tenantId}/staff/${currentAssignStaffId}/services/${svcId}`, { method: 'DELETE' })
+                    ));
+
+                    // Add newly selected services in bulk (if any)
+                    if (toAdd.length > 0) {
+                        await api(`/api/${tenantId}/staff/${currentAssignStaffId}/services/bulk`, {
+                            method: 'POST',
+                            body: JSON.stringify(toAdd)
+                        });
+                    }
+
+                    const total = nowChecked.size;
+                    toast(`${total} ta xizmat biriktirildi`, 'success');
+                    closeServiceAssignModal();
+                    loadStaff();
+                } catch (err) {
+                    renderError('service-assign-error', err.message || 'Xizmatlarni biriktirishda xatolik');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Saqlash';
+                }
+            }
+
+            function closeServiceAssignModal() {
+                document.getElementById('service-assign-modal').style.display = 'none';
+                currentAssignStaffId = null;
+                previouslyAssignedIds = new Set();
+            }
+
+            // ==================== SERVICES ====================
+            function showNewServiceForm() {
+                cancelServiceEdit();
+                document.getElementById('service-form-container').style.display = 'block';
+                lucide.createIcons();
+            }
+
+            function cancelServiceEdit() {
+                currentEditServiceId = null;
+                document.getElementById('edit-service-id').value = '';
+                document.getElementById('service-form-title').textContent = "Yangi xizmat qo'shish";
+                document.getElementById('create-svc-btn').textContent = "Qo'shish";
+                document.getElementById('create-service-form')?.reset();
+                clearError('service-form-error');
+                document.getElementById('service-form-container').style.display = 'none';
+            }
+
+            function openServiceEdit(serviceId) {
+                const s = servicesCache[serviceId];
+                if (!s) return;
+                currentEditServiceId = s.id;
+                document.getElementById('edit-service-id').value = s.id;
+                document.getElementById('svc-name').value = s.name || '';
+                document.getElementById('svc-description').value = s.description || '';
+                document.getElementById('svc-duration').value = s.duration || 30;
+                document.getElementById('svc-price').value = s.price || 0;
+                document.getElementById('service-form-title').textContent = 'Xizmatni tahrirlash';
+                document.getElementById('create-svc-btn').textContent = 'Yangilash';
+                clearError('service-form-error');
+                document.getElementById('service-form-container').style.display = 'block';
+                document.getElementById('service-form-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            async function loadServices() {
+                const container = document.getElementById('services-list');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                try {
+                    const result = await api(`/api/${tenantId}/services/by-tenant?activeOnly=false`, { method: 'GET' });
+                    const list = result.data || [];
+                    if (list.length === 0) {
+                        container.innerHTML = '<div class="empty">Xizmatlar topilmadi. Yuqoridagi tugma orqali xizmat qo\'shing.</div>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    list.forEach(s => {
+                        servicesCache[s.id] = s;
+                        const isActive = s.isActive !== false;
+                        const price = s.price ? Number(s.price).toLocaleString('uz-UZ') + " so'm" : '-';
+                        const div = document.createElement('div');
+                        div.className = `data-row ${isActive ? '' : 'inactive-badge'}`;
+                        div.innerHTML = `
+                            <div class="data-info">
+                                <strong>${esc(s.name || '-')}</strong>
+                                <small>${s.duration || '-'} daqiqa &middot; ${price}</small>
+                                ${s.description ? `<small style="display:block;margin-top:0.15rem;opacity:0.7;">${esc(s.description.substring(0, 100))}${s.description.length > 100 ? '...' : ''}</small>` : ''}
+                            </div>
+                            <div class="data-actions">
+                                <button class="action-btn primary" onclick="openServiceEdit('${s.id}')">
+                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Tahrirlash
+                                </button>
+                                ${isActive
+                                ? `<button class="action-btn danger" onclick="toggleServiceActive('${s.id}',false)">Deaktiv</button>`
+                                : `<button class="action-btn success" onclick="toggleServiceActive('${s.id}',true)">Aktiv</button>`}
+                                <button class="action-btn danger" onclick="deleteService('${s.id}')">O'chirish</button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    container.innerHTML = `<div class="empty">Xizmatlarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            async function toggleServiceActive(serviceId, activate) {
+                try {
+                    await api(`/api/${tenantId}/services/${serviceId}/${activate ? 'activate' : 'deactivate'}`, { method: 'PUT' });
+                    toast(activate ? 'Xizmat aktivlashtirildi' : 'Xizmat deaktivlashtirildi', 'success');
+                    loadServices();
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                }
+            }
+
+            async function deleteService(serviceId) {
+                if (!confirm("Xizmatni o'chirishni tasdiqlaysizmi?")) return;
+                try {
+                    await api(`/api/${tenantId}/services/${serviceId}`, { method: 'DELETE' });
+                    toast("Xizmat o'chirildi", 'success');
+                    loadServices();
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                }
+            }
+
+            document.getElementById('create-service-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('service-form-error');
+                const btn = document.getElementById('create-svc-btn');
+                btn.disabled = true; btn.textContent = 'Yuklanmoqda...';
+
+                const payload = {
+                    name: document.getElementById('svc-name').value.trim(),
+                    description: document.getElementById('svc-description').value.trim() || null,
+                    duration: parseInt(document.getElementById('svc-duration').value),
+                    price: parseFloat(document.getElementById('svc-price').value)
+                };
+
+                try {
+                    if (currentEditServiceId) {
+                        await api(`/api/${tenantId}/services/${currentEditServiceId}`, { method: 'PUT', body: JSON.stringify(payload) });
+                        toast("Xizmat yangilandi!", 'success');
+                    } else {
+                        await api(`/api/${tenantId}/services`, { method: 'POST', body: JSON.stringify(payload) });
+                        toast("Xizmat muvaffaqiyatli qo'shildi!", 'success');
+                    }
+                    cancelServiceEdit();
+                    loadServices();
+                } catch (err) {
+                    renderError('service-form-error', err.message || 'Xizmat saqlashda xatolik');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = currentEditServiceId ? 'Yangilash' : "Qo'shish";
+                }
+            });
+
+            // ==================== APPOINTMENTS ====================
+            async function loadAppointments() {
+                const container = document.getElementById('manage-appointments-list');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+                const dateFilter = document.getElementById('appt-date-filter').value;
+                const statusFilter = document.getElementById('appt-status-filter').value;
+
+                try {
+                    let appointments;
+                    if (dateFilter) {
+                        const result = await api(`/api/${tenantId}/appointments/by-tenant?date=${dateFilter}`, { method: 'GET' });
+                        appointments = result.data || [];
+                    } else {
+                        const result = await api(`/api/${tenantId}/appointments/today`, { method: 'GET' });
+                        appointments = result.data || [];
+                    }
+
+                    if (statusFilter) {
+                        appointments = appointments.filter(a => a.status === statusFilter);
+                    }
+
+                    renderAppointmentRows(appointments, container, true);
+                } catch (e) {
+                    container.innerHTML = `<div class="empty">Navbatlarni yuklashda xatolik: ${e.message}</div>`;
+                }
+            }
+
+            function renderAppointmentRows(list, container, showActions) {
+                if (!list || list.length === 0) {
+                    container.innerHTML = '<div class="empty">Navbatlar topilmadi.</div>';
+                    return;
+                }
+                container.innerHTML = '';
+                list.forEach(a => {
+                    const statusClass = `status-${a.status || 'PENDING'}`;
+                    const time = a.formattedTime || `${a.startTime || ''} – ${a.endTime || ''}`;
+                    const div = document.createElement('div');
+                    div.className = 'appt-row';
+
+                    let actionsHtml = '';
+                    if (showActions) {
+                        if (a.status === 'PENDING') {
+                            actionsHtml = `
+                                <button class="action-btn success" onclick="apptAction('${a.id}','confirm')">Tasdiqlash</button>
+                                <button class="action-btn danger" data-id="${a.id}" data-info="${esc(a.customerName || a.customerPhone || '')}" onclick="openCancelReasonModal(this)">Bekor</button>
+                            `;
+                        } else if (a.status === 'CONFIRMED') {
+                            actionsHtml = `
+                                <button class="action-btn success" onclick="apptAction('${a.id}','complete')">Yakunlash</button>
+                                <button class="action-btn" onclick="apptAction('${a.id}','no-show')">No-show</button>
+                                <button class="action-btn danger" data-id="${a.id}" data-info="${esc(a.customerName || a.customerPhone || '')}" onclick="openCancelReasonModal(this)">Bekor</button>
+                            `;
+                        }
+                    }
+
+                    div.innerHTML = `
+                        <div style="flex:1;min-width:200px;">
+                            <div style="font-weight:600;margin-bottom:0.2rem;">${esc(a.serviceName || 'Xizmat')}</div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);">
+                                ${esc(a.customerName || a.customerPhone || '-')} &middot; ${esc(a.staffName || '-')}
+                            </div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.15rem;">
+                                ${a.appointmentDate || ''} ${time}
+                            </div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>
+                            <div style="font-weight:700;color:var(--primary);margin-top:0.3rem;">${a.formattedPrice || ''}</div>
+                            ${actionsHtml ? `<div style="margin-top:0.5rem;display:flex;gap:0.3rem;justify-content:flex-end;flex-wrap:wrap;">${actionsHtml}</div>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            async function apptAction(apptId, action, reason) {
+                try {
+                    const body = action === 'cancel'
+                        ? JSON.stringify({ reason })
+                        : undefined;
+                    await api(`/api/${tenantId}/appointments/${apptId}/${action}`, { method: 'PUT', body });
+                    const labels = { confirm: 'Tasdiqlandi', cancel: 'Bekor qilindi', complete: 'Yakunlandi', 'no-show': 'No-show belgilandi' };
+                    toast(labels[action] || 'Bajarildi', 'success');
+                    if (currentManageTab === 'overview') loadOverview();
+                    else loadAppointments();
+                } catch (e) {
+                    toast(e.message || 'Xatolik', 'error');
+                }
+            }
+
+            let cancelReasonApptId = null;
+
+            function openCancelReasonModal(btn) {
+                cancelReasonApptId = btn.dataset.id;
+                document.getElementById('cancel-reason-appt-info').textContent = btn.dataset.info || '';
+                document.getElementById('cancel-reason-input').value = '';
+                document.getElementById('cancel-reason-error').style.display = 'none';
+                document.getElementById('cancel-reason-modal').style.display = 'block';
+                lucide.createIcons();
+            }
+
+            function closeCancelReasonModal() {
+                document.getElementById('cancel-reason-modal').style.display = 'none';
+                cancelReasonApptId = null;
+            }
+
+            async function submitCancelWithReason() {
+                const reason = document.getElementById('cancel-reason-input').value.trim();
+                const errEl = document.getElementById('cancel-reason-error');
+                errEl.style.display = 'none';
+                if (!reason) {
+                    errEl.textContent = 'Sabab kiritish majburiy';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                const btn = document.getElementById('cancel-reason-submit-btn');
+                btn.disabled = true; btn.textContent = 'Yuklanmoqda...';
+                try {
+                    await apptAction(cancelReasonApptId, 'cancel', reason);
+                    closeCancelReasonModal();
+                } catch (e) {
+                    errEl.textContent = e.message || 'Xatolik yuz berdi';
+                    errEl.style.display = 'block';
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Bekor qilish';
+                }
+            }
+
+            // ==================== SETTINGS ====================
+            async function loadSettings() {
+                if (!tenantData) return;
+                const t = tenantData;
+                document.getElementById('s-org-name').value = t.organizationName || '';
+                document.getElementById('s-email').value = t.email || '';
+                document.getElementById('s-phone').value = t.phone || '';
+                document.getElementById('s-address').value = t.address || '';
+                document.getElementById('s-hours-start').value = t.workingHoursStart ? t.workingHoursStart.substring(0, 5) : '09:00';
+                document.getElementById('s-hours-end').value = t.workingHoursEnd ? t.workingHoursEnd.substring(0, 5) : '18:00';
+                document.getElementById('s-slot-duration').value = t.slotDuration || 30;
+                document.getElementById('s-advance-days').value = t.advanceBookingDays || 30;
+                document.getElementById('s-auto-confirm').checked = t.autoConfirmBooking || false;
+            }
+
+            document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('settings-form-error');
+                const btn = document.getElementById('save-settings-btn');
+                btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+
+                const toTime = v => v ? (v.length === 5 ? v + ':00' : v) : null;
+                const payload = {
+                    organizationName: document.getElementById('s-org-name').value.trim(),
+                    email: document.getElementById('s-email').value.trim() || null,
+                    phone: document.getElementById('s-phone').value.trim() || null,
+                    address: document.getElementById('s-address').value.trim() || null,
+                    workingHoursStart: toTime(document.getElementById('s-hours-start').value),
+                    workingHoursEnd: toTime(document.getElementById('s-hours-end').value),
+                    slotDuration: parseInt(document.getElementById('s-slot-duration').value) || null,
+                    advanceBookingDays: parseInt(document.getElementById('s-advance-days').value) || null,
+                    autoConfirmBooking: document.getElementById('s-auto-confirm').checked
+                };
+
+                try {
+                    const result = await api(`/api/tenant/${tenantId}`, { method: 'PUT', body: JSON.stringify(payload) });
+                    tenantData = result.data;
+                    document.getElementById('tenant-name').textContent = tenantData.organizationName || 'Boshqaruv Paneli';
+                    document.getElementById('tenant-info').textContent = `${tenantData.businessType || ''} · ${tenantData.address || ''}`;
+                    toast("Sozlamalar saqlandi!", 'success');
+                } catch (err) {
+                    renderError('settings-form-error', err.message || 'Sozlamalarni saqlashda xatolik');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Saqlash';
+                }
+            });
+
+            // ==================== UTIL ====================
+            function esc(str) {
+                return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            // Close modals on backdrop click
+            document.getElementById('schedule-modal')?.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('schedule-modal')) closeScheduleModal();
+            });
+            document.getElementById('staff-edit-modal')?.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('staff-edit-modal')) closeStaffEditModal();
+            });
+            document.getElementById('service-assign-modal')?.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('service-assign-modal')) closeServiceAssignModal();
+            });
+
+            // ==================== INIT ====================
+            document.addEventListener('DOMContentLoaded', async () => {
+                if (!requireAuthOrRedirect()) return;
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('appt-date-filter').value = today;
+
+                try {
+                    const result = await api('/api/auth/me', { method: 'GET' });
+                    const user = result.data;
+
+                    if (!user.tenantId || !user.tenantSlug) {
+                        renderError('page-error', 'Sizda boshqariladigan organizatsiya topilmadi. Avval tashkilot yarating.');
+                        document.getElementById('manage-loading').style.display = 'none';
+                        return;
+                    }
+
+                    tenantId = user.tenantId;
+                    tenantSlug = user.tenantSlug;
+
+                    const tenantResult = await api(`/api/tenant/${tenantSlug}/by-slug`, { method: 'GET' });
+                    tenantData = tenantResult.data;
+
+                    document.getElementById('tenant-name').textContent = tenantData.organizationName || 'Boshqaruv Paneli';
+                    document.getElementById('tenant-info').textContent =
+                        `${tenantData.businessType || ''} · ${tenantData.address || ''}`;
+                    document.getElementById('tenant-public-link').href = `/dashboard/tenant/${tenantSlug}`;
+
+                    document.getElementById('manage-loading').style.display = 'none';
+                    document.getElementById('manage-content').style.display = 'block';
+                    lucide.createIcons();
+
+                    loadOverview();
+                } catch (err) {
+                    document.getElementById('manage-loading').style.display = 'none';
+                    renderError('page-error', err.message || 'Boshqaruv panelini yuklashda xatolik');
+                }
+            });
+        </script>
+    </section>
+</body>
+
+</html>

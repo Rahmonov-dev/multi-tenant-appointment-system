@@ -1,12 +1,18 @@
 package org.architect.multitenantappointmentsystem.dto.response;
 
 import java.util.List;
+import java.util.UUID;
 
 public record UserMeResponse(
-        java.util.UUID id,
+        UUID id,
         String fullName,
         String phone,
         String email,
-        List<String> roles
+        List<String> roles,
+        UUID tenantId,
+        String tenantSlug,
+        UUID staffId,
+        UUID staffTenantId,
+        String staffTenantSlug
 ) {
 }

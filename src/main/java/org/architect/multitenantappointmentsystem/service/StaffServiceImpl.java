@@ -268,7 +268,7 @@ public class StaffServiceImpl implements StaffService {
             schedule.setEndTime(end);
             schedule.setIsAvailable(request.isAvailable());
         }
-
+        schedule= scheduleRepository.save(schedule);
         return StaffScheduleResponse.fromEntity(schedule);
     }
 

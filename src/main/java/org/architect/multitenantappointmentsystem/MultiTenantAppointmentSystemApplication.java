@@ -25,6 +25,8 @@ public class MultiTenantAppointmentSystemApplication {
                 registry.addViewController("/dashboard/login").setViewName("login");
                 registry.addViewController("/dashboard/register").setViewName("register");
                 registry.addViewController("/dashboard/profile").setViewName("profile");
+                registry.addViewController("/dashboard/manage/**").setViewName("manage");
+                registry.addViewController("/dashboard/staff/**").setViewName("staff-dashboard");
             }
         };
     }

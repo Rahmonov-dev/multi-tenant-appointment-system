@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/tenant")
 @RequiredArgsConstructor
@@ -49,21 +51,26 @@ public class TenantController {
         service.deleteTenant(id);
         return ResponseDto.ok("", "Tenant o'chirildi").toResponseEntity();
     }
-//
-//    @GetMapping("/get-all")
-//    public ResponseEntity<ResponseDto<Page<TenantResponse>>> getAllTenants(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        return ResponseDto.ok(service.getAllTenants(pageable)).toResponseEntity();
-//    }
-//
-//    @GetMapping("/search")
-//    public ResponseEntity<ResponseDto<Page<TenantResponse>>> searchTenants(
-//            @RequestParam(defaultValue = "") String q,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        return ResponseDto.ok(service.searchTenants(q, pageable)).toResponseEntity();
-//    }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<ResponseDto<List<TenantResponse>>> getAllTenants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TenantResponse> res = service.getAllTenants(pageable);
+        return ResponseDto.ok(res).toResponseEntity();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ResponseDto<List<TenantResponse>>> searchTenants(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TenantResponse> res = service.searchTenants(q, pageable);
+
+        return ResponseDto.ok(res).toResponseEntity();
+    }
 }

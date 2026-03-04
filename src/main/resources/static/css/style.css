@@ -221,22 +221,38 @@ main { padding-top: 2.5rem; padding-bottom: 5rem; }
 }
 
 .slot-btn {
-    padding: 0.5rem;
+    padding: 0.5rem 0.25rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     text-align: center;
     font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-main);
     cursor: pointer;
     transition: all 0.2s;
     user-select: none;
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.slot-btn:hover { border-color: var(--primary); color: var(--primary); }
+.slot-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--bg-hover, #f5f5ff); }
 
 .slot-btn.selected {
     background-color: var(--primary);
     border-color: var(--primary);
     color: white;
+    font-weight: 600;
+}
+
+.slot-btn.slot-taken {
+    background: var(--bg-muted, #f3f4f6);
+    border-color: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    text-decoration: line-through;
+    opacity: 0.6;
 }
 
 /* Error / Empty UI */

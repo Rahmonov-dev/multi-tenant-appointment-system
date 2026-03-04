@@ -144,6 +144,8 @@ public interface AppointmentService {
     List<AppointmentResponse> getStaffAppointmentsByDateRange(
             UUID tenantId, UUID staffId, LocalDate startDate, LocalDate endDate);
 
+    Page<AppointmentResponse> getStaffAppointments(UUID tenantId, UUID staffId,AppointmentStatus status,Pageable pageable);
+
     // ==================== CALENDAR ====================
 
     /**

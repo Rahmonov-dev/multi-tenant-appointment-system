@@ -51,6 +51,67 @@
                 </div>
             </div>
 
+            <!-- ===== Cancel Modal ===== -->
+            <div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;overflow-y:auto;padding:1rem;">
+                <div style="background:var(--bg-card,#fff);border-radius:1rem;padding:1.5rem;max-width:440px;margin:3rem auto;position:relative;">
+                    <button onclick="closeCancelModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                    <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:600;">
+                        <i data-lucide="x-circle" style="width:16px;height:16px;vertical-align:middle;color:#dc2626;"></i>
+                        Navbatni bekor qilish
+                    </h3>
+                    <p id="cancel-appt-info" style="font-size:0.88rem;color:var(--text-muted);margin-bottom:1rem;"></p>
+                    <div class="form-group">
+                        <label class="label">Sabab <span style="color:#dc2626;">*</span></label>
+                        <textarea id="cancel-reason" class="input" style="height:80px;" placeholder="Bekor qilish sababini kiriting..."></textarea>
+                    </div>
+                    <div id="cancel-error" class="error-box"></div>
+                    <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                        <button onclick="closeCancelModal()" class="btn" style="flex:1;border:1px solid var(--border);">Orqaga</button>
+                        <button onclick="submitCancel()" class="btn" id="cancel-submit-btn"
+                            style="flex:1;background:#dc2626;color:#fff;border:none;">
+                            Bekor qilish
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Reschedule Modal ===== -->
+            <div id="reschedule-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;overflow-y:auto;padding:1rem;">
+                <div style="background:var(--bg-card,#fff);border-radius:1rem;padding:1.5rem;max-width:480px;margin:3rem auto;position:relative;">
+                    <button onclick="closeRescheduleModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                    <h3 style="margin:0 0 0.25rem;font-size:1rem;font-weight:600;">
+                        <i data-lucide="calendar-clock" style="width:16px;height:16px;vertical-align:middle;color:var(--primary);"></i>
+                        Vaqtni o'zgartirish
+                    </h3>
+                    <p id="reschedule-appt-info" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;"></p>
+                    <div class="form-group">
+                        <label class="label">Yangi sana</label>
+                        <input type="date" id="reschedule-date" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Bo'sh vaqtlar</label>
+                        <div id="reschedule-slots" style="min-height:48px;">
+                            <p style="font-size:0.85rem;color:var(--text-muted);">Sana tanlang</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Sabab (ixtiyoriy)</label>
+                        <input type="text" id="reschedule-reason" class="input" placeholder="Vaqt o'zgartirish sababi...">
+                    </div>
+                    <div id="reschedule-error" class="error-box"></div>
+                    <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                        <button onclick="closeRescheduleModal()" class="btn" style="flex:1;border:1px solid var(--border);">Bekor</button>
+                        <button onclick="submitReschedule()" class="btn btn-primary" id="reschedule-submit-btn" style="flex:1;" disabled>
+                            Saqlash
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== Create Organization ===== -->
             <div id="create-org-section" style="display:none; margin-top:3rem;">
                 <h2
@@ -224,7 +285,7 @@
             }
         </style>
 
-        <script th:inline="javascript">
+        <script>
             let currentTab = 'upcoming';
             let currentUser = null;
 
@@ -235,6 +296,7 @@
                 loadAppointments(tab);
             }
 
+            // ===== APPOINTMENT RENDERING =====
             function renderAppointments(list) {
                 const container = document.getElementById('appointments-container');
                 if (!list || list.length === 0) {
@@ -247,31 +309,207 @@
                     const date = a.appointmentDate
                         ? new Date(a.appointmentDate).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
                         : '-';
-                    const time = a.formattedTime || `${a.startTime || ''} - ${a.endTime || ''}`;
+                    const start = (a.startTime || '').toString().substring(0, 5);
+                    const end = (a.endTime || '').toString().substring(0, 5);
+                    const time = a.formattedTime || (start && end ? `${start} - ${end}` : '-');
                     const statusClass = `status-${a.status || 'PENDING'}`;
+                    const canAct = a.status === 'PENDING' || a.status === 'CONFIRMED';
 
                     const div = document.createElement('div');
                     div.className = 'appt-card';
+                    div.id = `appt-card-${a.id}`;
                     div.innerHTML = `
-                    <div>
-                        <div style="font-weight:600;margin-bottom:0.3rem;">${a.serviceName || 'Xizmat'}</div>
-                        <div style="font-size:0.82rem;color:var(--text-muted);">
-                            <span>${a.tenantName || '-'}</span> &bull;
-                            <span>${a.staffName || '-'}</span>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:600;margin-bottom:0.3rem;">${a.serviceName || 'Xizmat'}</div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);">
+                                <span>${a.tenantName || '-'}</span> &bull;
+                                <span>${a.staffName || '-'}</span>
+                            </div>
+                            <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.2rem;">
+                                <i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;"></i>
+                                ${date} &bull; ${time}
+                            </div>
+                            ${canAct ? `
+                            <div style="display:flex;gap:0.4rem;margin-top:0.6rem;flex-wrap:wrap;">
+                                <button onclick="openRescheduleModal('${a.id}','${a.tenantId}','${a.staffId}','${a.serviceId}','${a.serviceName || ''}')"
+                                    style="padding:0.25rem 0.6rem;font-size:0.76rem;border:1px solid var(--primary);color:var(--primary);background:transparent;border-radius:0.35rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                                    <i data-lucide="calendar-clock" style="width:11px;height:11px;"></i> Vaqtni o'zgartirish
+                                </button>
+                                <button onclick="openCancelModal('${a.id}','${a.tenantId}','${a.serviceName || ''}','${date}','${time}')"
+                                    style="padding:0.25rem 0.6rem;font-size:0.76rem;border:1px solid #dc2626;color:#dc2626;background:transparent;border-radius:0.35rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                                    <i data-lucide="x-circle" style="width:11px;height:11px;"></i> Bekor qilish
+                                </button>
+                            </div>` : ''}
                         </div>
-                        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.2rem;">
-                            <i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;"></i>
-                            ${date} &bull; ${time}
+                        <div style="text-align:right;flex-shrink:0;">
+                            <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>
+                            <div style="font-weight:700;color:var(--primary);margin-top:0.4rem;">${a.formattedPrice || ''}</div>
                         </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>
-                        <div style="font-weight:700;color:var(--primary);margin-top:0.4rem;">${a.formattedPrice || ''}</div>
-                    </div>
-                `;
+                    `;
                     container.appendChild(div);
                 });
                 lucide.createIcons();
+            }
+
+            // ===== CANCEL =====
+            let cancelApptId = null, cancelTenantId = null;
+
+            function openCancelModal(apptId, tenantId, serviceName, date, time) {
+                cancelApptId = apptId;
+                cancelTenantId = tenantId;
+                document.getElementById('cancel-appt-info').textContent =
+                    `${serviceName} · ${date} · ${time}`;
+                document.getElementById('cancel-reason').value = '';
+                clearError('cancel-error');
+                document.getElementById('cancel-modal').style.display = 'block';
+                lucide.createIcons();
+            }
+
+            function closeCancelModal() {
+                document.getElementById('cancel-modal').style.display = 'none';
+                cancelApptId = null; cancelTenantId = null;
+            }
+
+            async function submitCancel() {
+                clearError('cancel-error');
+                const reason = document.getElementById('cancel-reason').value.trim();
+                if (!reason) {
+                    renderError('cancel-error', 'Sabab kiritish majburiy');
+                    return;
+                }
+                const btn = document.getElementById('cancel-submit-btn');
+                btn.disabled = true; btn.textContent = 'Yuklanmoqda...';
+                try {
+                    await api(`/api/${cancelTenantId}/appointments/${cancelApptId}/cancel`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ reason })
+                    });
+                    toast('Navbat bekor qilindi', 'success');
+                    closeCancelModal();
+                    // Kartochkani yangilash — o'chirmasdan CANCELLED deb ko'rsatish
+                    const card = document.getElementById(`appt-card-${cancelApptId}`);
+                    if (card) {
+                        const badge = card.querySelector('.status-badge');
+                        if (badge) {
+                            badge.className = 'status-badge status-CANCELLED';
+                            badge.textContent = 'Bekor qilingan';
+                        }
+                        const btns = card.querySelectorAll('button');
+                        btns.forEach(b => b.remove());
+                    }
+                } catch (e) {
+                    renderError('cancel-error', e.message || 'Xatolik yuz berdi');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Bekor qilish';
+                }
+            }
+
+            // ===== RESCHEDULE =====
+            let rescheduleApptId = null, rescheduleTenantId = null;
+            let rescheduleStaffId = null, rescheduleServiceId = null;
+            let rescheduleSelectedTime = null;
+
+            function openRescheduleModal(apptId, tenantId, staffId, serviceId, serviceName) {
+                rescheduleApptId = apptId;
+                rescheduleTenantId = tenantId;
+                rescheduleStaffId = staffId;
+                rescheduleServiceId = serviceId;
+                rescheduleSelectedTime = null;
+                document.getElementById('reschedule-appt-info').textContent = serviceName;
+                document.getElementById('reschedule-slots').innerHTML =
+                    '<p style="font-size:0.85rem;color:var(--text-muted);">Sana tanlang</p>';
+                document.getElementById('reschedule-submit-btn').disabled = true;
+                clearError('reschedule-error');
+                const today = new Date();
+                const min = today.toISOString().split('T')[0];
+                const dateEl = document.getElementById('reschedule-date');
+                dateEl.min = min;
+                dateEl.value = '';
+                document.getElementById('reschedule-reason').value = '';
+                document.getElementById('reschedule-modal').style.display = 'block';
+                lucide.createIcons();
+            }
+
+            function closeRescheduleModal() {
+                document.getElementById('reschedule-modal').style.display = 'none';
+                rescheduleApptId = null; rescheduleTenantId = null;
+                rescheduleStaffId = null; rescheduleServiceId = null;
+                rescheduleSelectedTime = null;
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('reschedule-date')?.addEventListener('change', async (e) => {
+                    const date = e.target.value;
+                    if (!date || !rescheduleTenantId) return;
+                    rescheduleSelectedTime = null;
+                    document.getElementById('reschedule-submit-btn').disabled = true;
+                    const slotsEl = document.getElementById('reschedule-slots');
+                    slotsEl.innerHTML = '<div class="loading" style="padding:0.5rem 0;"><div class="spinner" style="width:1rem;height:1rem;"></div></div>';
+                    try {
+                        const res = await api(
+                            `/api/${rescheduleTenantId}/appointments/available-slots?staffId=${rescheduleStaffId}&date=${date}&serviceId=${rescheduleServiceId}`,
+                            { method: 'GET' }
+                        );
+                        const slots = (res.data || []).filter(s => s.available !== false);
+                        if (slots.length === 0) {
+                            slotsEl.innerHTML = '<p style="font-size:0.85rem;color:var(--text-muted);">Bu kunda bo\'sh vaqt yo\'q.</p>';
+                            return;
+                        }
+                        slotsEl.innerHTML = '<div class="slots-grid" style="margin-top:0;"></div>';
+                        const grid = slotsEl.querySelector('.slots-grid');
+                        slots.forEach(slot => {
+                            const t = slot.displayTime || (slot.time || '').toString().substring(0, 5);
+                            const btn = document.createElement('div');
+                            btn.className = 'slot-btn';
+                            btn.textContent = t;
+                            btn.onclick = () => {
+                                grid.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                                btn.classList.add('selected');
+                                rescheduleSelectedTime = t;
+                                document.getElementById('reschedule-submit-btn').disabled = false;
+                            };
+                            grid.appendChild(btn);
+                        });
+                    } catch (err) {
+                        slotsEl.innerHTML = `<p style="font-size:0.85rem;color:#dc2626;">${err.message}</p>`;
+                    }
+                });
+
+                document.getElementById('cancel-modal')?.addEventListener('click', e => {
+                    if (e.target === document.getElementById('cancel-modal')) closeCancelModal();
+                });
+                document.getElementById('reschedule-modal')?.addEventListener('click', e => {
+                    if (e.target === document.getElementById('reschedule-modal')) closeRescheduleModal();
+                });
+            }, { once: true });
+
+            async function submitReschedule() {
+                clearError('reschedule-error');
+                if (!rescheduleSelectedTime) {
+                    renderError('reschedule-error', 'Vaqtni tanlang'); return;
+                }
+                const date = document.getElementById('reschedule-date').value;
+                const reason = document.getElementById('reschedule-reason').value.trim();
+                const toTime = t => t && t.length === 5 ? t + ':00' : (t || '');
+                const btn = document.getElementById('reschedule-submit-btn');
+                btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+                try {
+                    await api(`/api/${rescheduleTenantId}/appointments/${rescheduleApptId}/reschedule`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            newDate: date,
+                            newTime: toTime(rescheduleSelectedTime),
+                            reason: reason || null
+                        })
+                    });
+                    toast('Navbat vaqti o\'zgartirildi!', 'success');
+                    closeRescheduleModal();
+                    loadAppointments(currentTab);
+                } catch (e) {
+                    renderError('reschedule-error', e.message || 'Xatolik yuz berdi');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Saqlash';
+                }
             }
 
             async function loadAppointments(type) {
@@ -310,9 +548,10 @@
 
                     // Show create-org or owner section based on roles
                     const isOwner = (currentUser.roles || []).includes('OWNER');
-                    if (isOwner) {
+                    if (isOwner && currentUser.tenantSlug) {
                         document.getElementById('owner-section').style.display = 'block';
-                    } else {
+                        document.getElementById('owner-tenant-link').href = `/dashboard/manage/${currentUser.tenantSlug}`;
+                    } else if (!isOwner) {
                         document.getElementById('create-org-section').style.display = 'block';
                     }
 
@@ -342,8 +581,8 @@
                     email: document.getElementById('orgEmail').value.trim(),
                     phone: phoneFormatted,
                     address: document.getElementById('orgAddress').value.trim(),
-                    workingHoursStart: document.getElementById('workStart').value + ':00',
-                    workingHoursEnd: document.getElementById('workEnd').value + ':00',
+                    workingHoursStart: document.getElementById('workStart').value,
+                    workingHoursEnd: document.getElementById('workEnd').value,
                     slotDuration: parseInt(document.getElementById('slotDuration').value),
                     advanceBookingDays: parseInt(document.getElementById('advanceBookingDays').value),
                     autoConfirmBooking: document.getElementById('autoConfirm').checked,
@@ -356,9 +595,9 @@
                         body: JSON.stringify(payload)
                     });
                     toast('Organizatsiya muvaffaqiyatli yaratildi!', 'success');
-                    // Redirect to the new tenant's page
+                    // Redirect to management dashboard
                     setTimeout(() => {
-                        window.location.href = `/dashboard/tenant/${result.data.slug}`;
+                        window.location.href = `/dashboard/manage/${result.data.slug}`;
                     }, 800);
                 } catch (err) {
                     renderError('org-error', err.message || 'Organizatsiya yaratishda xatolik');

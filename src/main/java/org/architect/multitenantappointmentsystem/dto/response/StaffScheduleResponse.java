@@ -4,11 +4,12 @@ import org.architect.multitenantappointmentsystem.entity.StaffSchedule;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record StaffScheduleResponse(
-        java.util.UUID id,
-        java.util.UUID staffId,
+        UUID id,
+        UUID staffId,
         String staffName,
         Integer dayOfWeek,
         String dayName,

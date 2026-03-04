@@ -7,10 +7,7 @@ import org.architect.multitenantappointmentsystem.dto.request.CancelAppointmentR
 import org.architect.multitenantappointmentsystem.dto.request.CreateAppointmentRequest;
 import org.architect.multitenantappointmentsystem.dto.request.RescheduleAppointmentRequest;
 import org.architect.multitenantappointmentsystem.dto.request.UpdateAppointmentRequest;
-import org.architect.multitenantappointmentsystem.dto.response.AppointmentCalendarResponse;
-import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
-import org.architect.multitenantappointmentsystem.dto.response.AppointmentStatisticsResponse;
-import org.architect.multitenantappointmentsystem.dto.response.AvailableSlotResponse;
+import org.architect.multitenantappointmentsystem.dto.response.*;
 import org.architect.multitenantappointmentsystem.entity.AppointmentStatus;
 import org.architect.multitenantappointmentsystem.service.interfaces.AppointmentService;
 import org.springframework.data.domain.Page;
@@ -18,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -31,7 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/{tenantId}/appointments")
 @RequiredArgsConstructor
-@org.springframework.validation.annotation.Validated
+@Validated
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
@@ -307,7 +305,18 @@ public class AppointmentController {
         List<AppointmentResponse> appointments = appointmentService.getAppointmentsByDateRange(tenantId, startDate, endDate);
         return ResponseDto.ok(appointments).toResponseEntity();
     }
-
+    @GetMapping("/get-staff-appointments/{staffId}")
+    public ResponseEntity<ResponseDto<List<AppointmentResponse>>> getAppointments(
+            @PathVariable UUID tenantId,
+            @PathVariable UUID staffId,
+            @RequestParam(required = false) AppointmentStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AppointmentResponse> appointments = appointmentService.getStaffAppointments(
+                tenantId,staffId,status, pageable);
+        return ResponseDto.ok(appointments).toResponseEntity();
+    }
     /**
      * Staff bo'yicha sana oralig'ida appointmentlar
      * GET /api/appointments/staff-date-range/{staffId}

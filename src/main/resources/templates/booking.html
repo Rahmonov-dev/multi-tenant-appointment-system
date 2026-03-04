@@ -55,7 +55,7 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
+    <script>
         let selectedStaffId = null;
         let selectedDate = null;
         let selectedTime = null;
@@ -169,13 +169,22 @@
 
                 slots.forEach(slot => {
                     const btn = document.createElement('div');
-                    btn.className = 'slot-btn';
-                    btn.textContent = (slot.startTime || '').substring(0, 5);
-                    btn.onclick = () => selectSlot(btn, slot.startTime);
+                    const time = slot.displayTime || (slot.time || '').toString().substring(0, 5);
+                    if (slot.available === false) {
+                        btn.className = 'slot-btn slot-taken';
+                        btn.title = 'Band qilingan';
+                    } else {
+                        btn.className = 'slot-btn';
+                        btn.onclick = () => selectSlot(btn, time);
+                    }
+                    btn.textContent = time;
                     grid.appendChild(btn);
                 });
             } catch (err) {
-                container.innerHTML = `<div class="empty">Vaqtlarni yuklashda xatolik: ${err.message}</div>`;
+                const msg = err.message && err.message.toLowerCase().includes('jadval')
+                    ? 'Bu kuni xodimning ish jadvali mavjud emas.'
+                    : `Vaqtlarni yuklashda xatolik: ${err.message}`;
+                container.innerHTML = `<div class="empty">${msg}</div>`;
             }
         }
 
@@ -203,7 +212,11 @@
             clearError('form-error');
 
             const name = document.getElementById('customer-name').value.trim();
-            const phone = normalizePhone(document.getElementById('customer-phone').value);
+            const rawPhone = normalizePhone(document.getElementById('customer-phone').value);
+            const phone = rawPhone.startsWith('998') ? '+' + rawPhone
+                        : rawPhone.length === 9     ? '+998' + rawPhone
+                        : rawPhone.startsWith('+')  ? rawPhone
+                        : '+' + rawPhone;
             const notes = document.getElementById('booking-notes').value;
 
             if (!selectedStaffId || !selectedDate || !selectedTime) {
@@ -219,13 +232,15 @@
             btn.disabled = true;
             btn.textContent = 'Yuborilmoqda...';
 
+            const toTime = t => t && t.length === 5 ? t + ':00' : (t || '');
             const payload = {
                 staffId: selectedStaffId,
                 serviceId: serviceId,
                 customerName: name,
                 customerPhone: phone,
+                customerEmail: userData ? userData.email : null,
                 appointmentDate: selectedDate,
-                startTime: selectedTime,
+                startTime: toTime(selectedTime),
                 notes: notes
             };
 

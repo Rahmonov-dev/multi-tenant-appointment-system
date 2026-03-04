@@ -3,6 +3,7 @@ package org.architect.multitenantappointmentsystem.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import org.architect.multitenantappointmentsystem.dto.response.TenantResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
@@ -19,6 +20,10 @@ public class ResponseDto<T> {
     private T data;
     @JsonIgnore
     private Integer statusCode;
+    private Integer page;
+    private Integer size;
+    private Integer totalPages;
+    private Boolean last;
 
     public static <T> ResponseDto<T> ok(T data) {
         ResponseDto<T> dto = new ResponseDto<>();
@@ -26,6 +31,7 @@ public class ResponseDto<T> {
         dto.setData(data);
         return dto;
     }
+
     public static ResponseDto<Void> ok() {
         ResponseDto<Void> dto = new ResponseDto<>();
         dto.setSuccess(true);
@@ -45,10 +51,14 @@ public class ResponseDto<T> {
         dto.setData(page.getContent());
         dto.setCount(page.getNumberOfElements());
         dto.setTotalCount(page.getTotalElements());
+        dto.setPage(page.getNumber());
+        dto.setSize(page.getSize());
+        dto.setTotalPages(page.getTotalPages());
         return dto;
     }
-    public static ResponseDto unauthorized(){
-        ResponseDto responseDto= new ResponseDto();
+
+    public static ResponseDto unauthorized() {
+        ResponseDto responseDto = new ResponseDto();
         responseDto.setStatusCode(401);
         return responseDto;
     }
@@ -57,8 +67,5 @@ public class ResponseDto<T> {
         int statusCode = Optional.ofNullable(this.statusCode).orElse(200);
         return ResponseEntity.status(statusCode).body(this);
     }
-
-
-
 }
 

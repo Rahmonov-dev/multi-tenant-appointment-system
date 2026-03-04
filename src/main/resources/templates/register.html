@@ -2,83 +2,98 @@
 <html th:replace="~{layout :: html(title='Register - Appointment System', content=~{::section})}">
 
 <body>
-<section>
-    <div class="card" style="max-width: 500px; margin: 4rem auto; cursor: default;">
-        <h2 class="page-title" style="text-align: center; margin-bottom: 2rem;">Ro'yxatdan o'tish</h2>
+    <section>
+        <div class="card" style="max-width: 500px; margin: 4rem auto; cursor: default;">
+            <h2 class="page-title" style="text-align: center; margin-bottom: 2rem;">Ro'yxatdan o'tish</h2>
 
-        <form id="register-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label class="label">Ism</label>
-                    <input type="text" id="firstName" class="input" required placeholder="Ali">
+            <form id="register-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="label">Ism</label>
+                        <input type="text" id="firstName" class="input" required placeholder="Ali">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Familiya</label>
+                        <input type="text" id="lastName" class="input" required placeholder="Valiyev">
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label class="label">Familiya</label>
-                    <input type="text" id="lastName" class="input" required placeholder="Valiyev">
+                    <label class="label">Email</label>
+                    <input type="email" id="email" class="input" required placeholder="example@mail.com">
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="label">Email</label>
-                <input type="email" id="email" class="input" required placeholder="example@mail.com">
-            </div>
+                <div class="form-group">
+                    <label class="label">Telefon</label>
+                    <input type="tel" id="phone" class="input" required placeholder="+998901234567">
+                </div>
 
-            <div class="form-group">
-                <label class="label">Telefon</label>
-                <input type="tel" id="phone" class="input" required placeholder="+998901234567">
-            </div>
+                <div class="form-group">
+                    <label class="label">Parol</label>
+                    <input type="password" id="password" class="input" required placeholder="********">
+                </div>
 
-            <div class="form-group">
-                <label class="label">Parol</label>
-                <input type="password" id="password" class="input" required placeholder="********">
-            </div>
+                <div id="form-error" class="error-box"></div>
 
-            <div id="form-error" class="error-box"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="reg-btn">
+                    Ro'yxatdan o'tish
+                </button>
+            </form>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="reg-btn">
-                Ro'yxatdan o'tish
-            </button>
-        </form>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
+                Hisobingiz bormi? <a href="/dashboard/login" style="color: var(--primary); font-weight: 500;">Kirish</a>
+            </p>
+        </div>
 
-        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
-            Hisobingiz bormi? <a href="/dashboard/login" style="color: var(--primary); font-weight: 500;">Kirish</a>
-        </p>
-    </div>
+        <script>
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearError('form-error');
 
-    <script th:inline="javascript">
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearError('form-error');
+                const btn = document.getElementById('reg-btn');
+                btn.disabled = true;
+                btn.textContent = 'Yuklanmoqda...';
 
-            const btn = document.getElementById('reg-btn');
-            btn.disabled = true;
-            btn.textContent = 'Yuklanmoqda...';
+                const payload = {
+                    firstName: document.getElementById('firstName').value.trim(),
+                    lastName: document.getElementById('lastName').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    phone: normalizePhone(document.getElementById('phone').value),
+                    password: document.getElementById('password').value
+                };
 
-            const payload = {
-                firstName: document.getElementById('firstName').value.trim(),
-                lastName: document.getElementById('lastName').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                phone: normalizePhone(document.getElementById('phone').value),
-                password: document.getElementById('password').value
-            };
+                try {
+                    const result = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-            try {
-                await api('/api/auth/register', {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                    const data = await result.json();
 
-                toast("Ro'yxatdan o'tdingiz! Endi tizimga kiring.", 'success');
-                window.location.href = '/dashboard/login';
-            } catch (err) {
-                renderError('form-error', err.message || "Ma'lumotlarni tekshiring");
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Ro'yxatdan o'tish";
-            }
-        });
-    </script>
-</section>
+                    if (!result.ok || data.success === false) {
+                        throw new Error(data.message || "Ro'yxatdan o'tishda xatolik");
+                    }
+
+                    // Save token to localStorage
+                    const token = data.data?.token;
+                    if (token) {
+                        localStorage.setItem('token', token);
+                    }
+
+                    toast("Muvaffaqiyatli ro'yxatdan o'tdingiz!", 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard/tenants';
+                    }, 500);
+                } catch (err) {
+                    renderError('form-error', err.message || "Ma'lumotlarni tekshiring");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Ro'yxatdan o'tish";
+                }
+            });
+        </script>
+    </section>
 </body>
 
 </html>

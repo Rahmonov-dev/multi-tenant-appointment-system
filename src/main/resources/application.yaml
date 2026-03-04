@@ -2,6 +2,9 @@ spring:
   application:
     name: multi-tenant-appointment-system
 
+  thymeleaf:
+    cache: false
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/appointment_system}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -27,5 +30,5 @@ logging:
 
 jwt:
   secret: 753778214125442A472D4B6150645367566B59703373367639792F423F452848
-  expiration: 600000
-  refresh-token: 100000000000
+  expiration: 86400000
+  refresh-token: 2592000000

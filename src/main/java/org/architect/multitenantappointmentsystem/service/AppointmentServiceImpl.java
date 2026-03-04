@@ -14,6 +14,7 @@ import org.architect.multitenantappointmentsystem.exception.*;
 import org.architect.multitenantappointmentsystem.repository.*;
 import org.architect.multitenantappointmentsystem.service.interfaces.AppointmentService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -524,7 +525,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     public List<AppointmentResponse> getUpcomingAppointments(UUID tenantId, Integer limit) {
-        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit != null ? limit : 10);
+        Pageable pageable = PageRequest.of(0, limit != null ? limit : 10);
         return appointmentRepository.findUpcomingAppointments(tenantId, pageable)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -630,6 +631,16 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .stream()
                 .map(AppointmentResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<AppointmentResponse> getStaffAppointments(UUID tenantId, UUID staffId,AppointmentStatus status,Pageable pageable) {
+        if (status != null){
+            return appointmentRepository.findByStaffIdAndTenantIdAndStatus(tenantId,staffId,status,pageable)
+                    .map(AppointmentResponse::fromEntity);
+        }
+        return appointmentRepository.findByStaffIdAndTenantId(tenantId,staffId,pageable)
+                .map(AppointmentResponse::fromEntity);
     }
 
     /**
