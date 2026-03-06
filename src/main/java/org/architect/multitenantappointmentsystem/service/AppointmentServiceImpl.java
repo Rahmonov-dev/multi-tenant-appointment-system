@@ -12,7 +12,9 @@ import org.architect.multitenantappointmentsystem.dto.response.AvailableSlotResp
 import org.architect.multitenantappointmentsystem.entity.*;
 import org.architect.multitenantappointmentsystem.exception.*;
 import org.architect.multitenantappointmentsystem.repository.*;
+import org.architect.multitenantappointmentsystem.security.AuthUser;
 import org.architect.multitenantappointmentsystem.service.interfaces.AppointmentService;
+import org.architect.multitenantappointmentsystem.service.interfaces.AuthService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,9 +69,11 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new BusinessException(
                     "Faqat " + tenant.getAdvanceBookingDays() + " kun oldinga navbat olish mumkin");
         }
-        if (request.appointmentDate().isBefore(today)) {
+        LocalDateTime startDateTime=LocalDateTime.of(request.appointmentDate(),request.startTime());
+        if (startDateTime.isBefore(LocalDateTime.now())) {
             throw new BusinessException("O'tmishga navbat olib bo'lmaydi");
         }
+
 
         int dayOfWeek = request.appointmentDate().getDayOfWeek().getValue();
         StaffSchedule schedule = staffScheduleRepository
@@ -182,6 +187,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
 
+        // Autorizatsiya: navbat egasi (email bo'yicha) YOKI tenantning aktiv staffi
+        AuthUser currentUser = AuthService.getCurrentUser()
+                .orElseThrow(() -> new BusinessException("Autentifikatsiya talab qilinadi"));
+
+        boolean isOwner = appointment.getCustomerEmail() != null &&
+                appointment.getCustomerEmail().equalsIgnoreCase(currentUser.getUsername());
+
+        if (!isOwner) {
+            currentStaffService.requireActiveStaff(tenantId);
+        }
+
         if (appointment.isFinal()) {
             throw new BusinessException("Yakunlangan yoki bekor qilingan appointmentni o'zgartirib bo'lmaydi");
         }
@@ -219,6 +235,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setAppointmentDate(request.newDate());
         appointment.setStartTime(request.newTime());
         appointment.setEndTime(newEndTime);
+        appointment.setStatus(AppointmentStatus.PENDING);
 
         if (request.reason() != null) {
             String existingNotes = appointment.getNotes() != null ? appointment.getNotes() : "";
@@ -239,8 +256,19 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponse cancelAppointment(UUID tenantId, UUID id, CancelAppointmentRequest request) {
+
         Appointment appointment = appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Appointment topilmadi: " + id));
+
+        AuthUser currentUser = AuthService.getCurrentUser()
+                .orElseThrow(() -> new BusinessException("Autentifikatsiya talab qilinadi"));
+
+        boolean isOwner = appointment.getCustomerEmail() != null &&
+                appointment.getCustomerEmail().equalsIgnoreCase(currentUser.getUsername());
+
+        if (!isOwner) {
+            currentStaffService.requireActiveStaff(tenantId);
+        }
 
         if (appointment.isFinal()) {
             throw new BusinessException("Allaqachon yakunlangan yoki bekor qilingan");
@@ -248,9 +276,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.cancel();
 
-        if (request != null && request.reason() != null) {
-            String existingNotes = appointment.getNotes() != null ? appointment.getNotes() : "";
-            appointment.setNotes(existingNotes + "\n[Bekor qilish sababi: " + request.reason() + "]");
+        if (request != null && request.reason() != null && !request.reason().isBlank()) {
+            appointment.setCancelReason(request.reason().trim());
         }
 
         appointment = appointmentRepository.save(appointment);
@@ -319,6 +346,15 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (!appointment.isActive()) {
             throw new BusinessException("Faqat aktiv appointmentlarni no-show qilish mumkin");
+        }
+
+        LocalDateTime appointmentStart = LocalDateTime.of(
+                appointment.getAppointmentDate(),
+                appointment.getStartTime()
+        );
+
+        if (LocalDateTime.now().isBefore(appointmentStart)) {
+            throw new BusinessException("No-show faqat appointment boshlangandan keyin belgilanishi mumkin");
         }
 
         appointment.setStatus(AppointmentStatus.NO_SHOW);
@@ -582,6 +618,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     public List<AppointmentResponse> getAppointmentsByStatus(UUID tenantId, AppointmentStatus status) {
+        currentStaffService.requireOwnerOrManager(tenantId);
         return appointmentRepository.findByTenantIdAndStatus(tenantId, status)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -597,7 +634,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Page<AppointmentResponse> getAppointmentsPaginated(UUID tenantId, Boolean activeOnly, Pageable pageable) {
         currentStaffService.requireOwnerOrManager(tenantId);
-        Page<Appointment> appointmentPage = appointmentRepository.findByTenantId(tenantId, pageable);
+        Page<Appointment> appointmentPage = appointmentRepository.findByTenantIdActive(tenantId,activeOnly,pageable);
         return appointmentPage.map(AppointmentResponse::fromEntity);
     }
 
@@ -610,6 +647,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<AppointmentResponse> getAppointmentsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate) {
         currentStaffService.requireOwnerOrManager(tenantId);
+        Staff staff = currentStaffService.getCurrentStaff(tenantId);
+        if (!staff.getTenant().getId().equals(tenantId)) {
+            throw new AccessDeniedException("Bu tenantga ruxsat yo‘q");
+        }
         return appointmentRepository.findByTenantIdAndDateRange(tenantId, startDate, endDate)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -627,6 +668,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public List<AppointmentResponse> getStaffAppointmentsByDateRange(
             UUID tenantId, UUID staffId, LocalDate startDate,
             LocalDate endDate) {
+        currentStaffService.requireStaffRole(tenantId);
         return appointmentRepository.findByStaffIdAndDateRange(staffId, startDate, endDate)
                 .stream()
                 .map(AppointmentResponse::fromEntity)
@@ -635,6 +677,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public Page<AppointmentResponse> getStaffAppointments(UUID tenantId, UUID staffId,AppointmentStatus status,Pageable pageable) {
+        currentStaffService.requireStaffRole(tenantId);
         if (status != null){
             return appointmentRepository.findByStaffIdAndTenantIdAndStatus(tenantId,staffId,status,pageable)
                     .map(AppointmentResponse::fromEntity);
@@ -699,11 +742,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentStatisticsResponse getStatistics(UUID tenantId) {
         currentStaffService.requireOwnerOrManager(tenantId);
-
-        List<Appointment> allAppointments = appointmentRepository.findByTenantId(tenantId,
-                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
-
-        return calculateStatistics(tenantId, allAppointments);
+        List<Object[]> rows = appointmentRepository.countAndSumByStatusForTenant(tenantId);
+        long uniqueDays = appointmentRepository.countDistinctDaysForTenant(tenantId);
+        return buildStatisticsFromRows(tenantId, rows, uniqueDays);
     }
 
     /**
@@ -728,8 +769,9 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new BusinessException("Staff boshqa tenantga tegishli");
         }
 
-        List<Appointment> allAppointments = appointmentRepository.findByStaffId(staffId,
-                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        List<Appointment> allAppointments = appointmentRepository
+                .findByStaffId(staffId, org.springframework.data.domain.PageRequest.of(0, 10_000))
+                .getContent();
 
         return calculateStatistics(tenantId, allAppointments);
     }
@@ -743,77 +785,75 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentStatisticsResponse getStatisticsByDateRange(UUID tenantId, LocalDate startDate, LocalDate endDate) {
         currentStaffService.requireOwnerOrManager(tenantId);
-        List<Appointment> appointments = appointmentRepository
-                .findByTenantIdAndDateRange(tenantId, startDate, endDate);
-
-        return calculateStatistics(tenantId, appointments);
+        List<Object[]> rows = appointmentRepository.countAndSumByStatusForTenantInRange(tenantId, startDate, endDate);
+        long uniqueDays = appointmentRepository.countDistinctDaysForTenantInRange(tenantId, startDate, endDate);
+        return buildStatisticsFromRows(tenantId, rows, uniqueDays);
     }
 
-    private AppointmentStatisticsResponse calculateStatistics(UUID tenantId, List<Appointment> appointments) {
-        long total = appointments.size();
-        long pending = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.PENDING)
-                .count();
-        long confirmed = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED)
-                .count();
-        long completed = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
-                .count();
-        long cancelled = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.CANCELLED)
-                .count();
-        long noShow = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.NO_SHOW)
-                .count();
+    // Aggregate query natijasidan statistika quramiz — xotiraga hech qanday Appointment yuklanmaydi
+    private AppointmentStatisticsResponse buildStatisticsFromRows(UUID tenantId, List<Object[]> rows, long uniqueDays) {
+        long pending = 0, confirmed = 0, completed = 0, cancelled = 0, noShow = 0;
+        BigDecimal completedRevenue = BigDecimal.ZERO;
+        BigDecimal pendingRevenue   = BigDecimal.ZERO;
 
-        // Revenue calculations
-        BigDecimal totalRevenue = appointments.stream()
-                .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED)
-                .map(Appointment::getTotalPrice)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        for (Object[] row : rows) {
+            AppointmentStatus status = (AppointmentStatus) row[0];
+            long cnt  = ((Number) row[1]).longValue();
+            BigDecimal sum = (BigDecimal) row[2];
+            if (sum == null) sum = BigDecimal.ZERO;
+            switch (status) {
+                case PENDING   -> { pending   += cnt; pendingRevenue   = pendingRevenue.add(sum); }
+                case CONFIRMED -> { confirmed += cnt; pendingRevenue   = pendingRevenue.add(sum); }
+                case COMPLETED -> { completed += cnt; completedRevenue = completedRevenue.add(sum); }
+                case CANCELLED -> cancelled += cnt;
+                case NO_SHOW   -> noShow    += cnt;
+            }
+        }
 
-        BigDecimal pendingRevenue = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.PENDING)
-                .map(Appointment::getTotalPrice)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-
-        BigDecimal completedRevenue = appointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
-                .map(Appointment::getTotalPrice)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-
-        // Average appointments per day
-        long uniqueDays = appointments.stream()
-                .map(Appointment::getAppointmentDate)
-                .distinct()
-                .count();
+        long total = pending + confirmed + completed + cancelled + noShow;
         double avgPerDay = uniqueDays > 0 ? (double) total / uniqueDays : 0;
-
-        // Completion rate
-        long totalNonCancelled = total - cancelled;
-        double completionRate = totalNonCancelled > 0
-                ? (double) completed / totalNonCancelled * 100
-                : 0;
-
-        // Cancellation rate
-        double cancellationRate = total > 0
-                ? (double) cancelled / total * 100
-                : 0;
+        long nonCancelled = total - cancelled;
+        double completionRate   = nonCancelled > 0 ? (double) completed / nonCancelled * 100 : 0;
+        double cancellationRate = total > 0 ? (double) cancelled / total * 100 : 0;
 
         return AppointmentStatisticsResponse.fromEntity(
                 tenantId,
-                total,
-                pending,
-                confirmed,
-                completed,
-                cancelled,
-                noShow,
-                totalRevenue,
-                pendingRevenue,
-                completedRevenue,
+                total, pending, confirmed, completed, cancelled, noShow,
+                completedRevenue,   // totalRevenue = faqat yakunlanganlar
+                pendingRevenue,     // pendingRevenue = PENDING + CONFIRMED
+                completedRevenue,   // completedRevenue
                 avgPerDay,
                 completionRate,
                 cancellationRate);
+    }
+
+    // getStaffStatistics uchun (hali list-based, lekin kamroq muammo)
+    private AppointmentStatisticsResponse calculateStatistics(UUID tenantId, List<Appointment> appointments) {
+        long pending   = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.PENDING).count();
+        long confirmed = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED).count();
+        long completed = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).count();
+        long cancelled = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED).count();
+        long noShow    = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.NO_SHOW).count();
+        long total     = appointments.size();
+
+        BigDecimal completedRevenue = appointments.stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
+                .map(Appointment::getTotalPrice).filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal pendingRevenue = appointments.stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.PENDING || a.getStatus() == AppointmentStatus.CONFIRMED)
+                .map(Appointment::getTotalPrice).filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        long uniqueDays = appointments.stream().map(Appointment::getAppointmentDate).distinct().count();
+        double avgPerDay = uniqueDays > 0 ? (double) total / uniqueDays : 0;
+        long nonCancelled = total - cancelled;
+        double completionRate   = nonCancelled > 0 ? (double) completed / nonCancelled * 100 : 0;
+        double cancellationRate = total > 0 ? (double) cancelled / total * 100 : 0;
+
+        return AppointmentStatisticsResponse.fromEntity(
+                tenantId, total, pending, confirmed, completed, cancelled, noShow,
+                completedRevenue, pendingRevenue, completedRevenue,
+                avgPerDay, completionRate, cancellationRate);
     }
 }

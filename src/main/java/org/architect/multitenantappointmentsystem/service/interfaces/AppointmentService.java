@@ -47,7 +47,7 @@ public interface AppointmentService {
     /**
      * Appointment bekor qilish
      */
-    AppointmentResponse cancelAppointment(UUID tenantId, UUID id, CancelAppointmentRequest request);
+    AppointmentResponse cancelAppointment(UUID tenantId, UUID id,CancelAppointmentRequest request);
 
     /**
      * Appointment tasdiqlash

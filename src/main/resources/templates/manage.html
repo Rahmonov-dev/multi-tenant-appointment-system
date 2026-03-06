@@ -46,8 +46,27 @@
 
             <!-- ===== TAB: Overview ===== -->
             <div id="panel-overview" class="tab-panel">
+                <!-- Stats filter -->
+                <div style="display:flex;gap:0.5rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap;">
+                    <button onclick="loadStatsByRange('all')" id="stats-btn-all" class="btn btn-primary" style="font-size:0.82rem;padding:0.35rem 0.85rem;">Hammasi</button>
+                    <button onclick="loadStatsByRange('week')" id="stats-btn-week" class="btn" style="font-size:0.82rem;padding:0.35rem 0.85rem;border:1px solid var(--border);">Bu hafta</button>
+                    <button onclick="loadStatsByRange('month')" id="stats-btn-month" class="btn" style="font-size:0.82rem;padding:0.35rem 0.85rem;border:1px solid var(--border);">Bu oy</button>
+                    <div style="display:flex;align-items:flex-end;gap:0.4rem;margin-left:0.5rem;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="label" style="font-size:0.75rem;">Dan</label>
+                            <input type="date" id="stats-start-date" class="input" style="max-width:145px;">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="label" style="font-size:0.75rem;">Gacha</label>
+                            <input type="date" id="stats-end-date" class="input" style="max-width:145px;">
+                        </div>
+                        <button onclick="loadStatsByRange('custom')" class="btn" style="font-size:0.82rem;padding:0.35rem 0.85rem;border:1px solid var(--border);">
+                            <i data-lucide="bar-chart-2" style="width:13px;height:13px;"></i>
+                        </button>
+                    </div>
+                </div>
                 <div id="stats-container"
-                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;">
+                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:2rem;">
                 </div>
                 <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">Bugungi navbatlar</h3>
                 <div id="today-appointments"></div>
@@ -178,14 +197,15 @@
 
             <!-- ===== TAB: Appointments ===== -->
             <div id="panel-appointments" class="tab-panel" style="display:none;">
-                <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap;">
+                <!-- Filter row -->
+                <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:0.75rem;flex-wrap:wrap;">
                     <div class="form-group" style="margin:0;">
                         <label class="label">Sana</label>
-                        <input type="date" id="appt-date-filter" class="input" style="min-width:160px;">
+                        <input type="date" id="appt-date-filter" class="input" style="min-width:155px;">
                     </div>
                     <div class="form-group" style="margin:0;">
                         <label class="label">Status</label>
-                        <select id="appt-status-filter" class="input">
+                        <select id="appt-status-filter" class="input" style="min-width:150px;">
                             <option value="">Barcha statuslar</option>
                             <option value="PENDING">Kutilmoqda</option>
                             <option value="CONFIRMED">Tasdiqlangan</option>
@@ -199,6 +219,22 @@
                         <i data-lucide="search" style="width:14px;height:14px;"></i> Ko'rish
                     </button>
                 </div>
+                <!-- Phone search row -->
+                <div style="display:flex;gap:0.5rem;align-items:flex-end;margin-bottom:1.25rem;padding:0.75rem;background:var(--bg-main);border-radius:0.5rem;border:1px solid var(--border);">
+                    <div class="form-group" style="margin:0;flex:1;">
+                        <label class="label" style="font-size:0.78rem;">Mijoz telefoni bo'yicha qidirish</label>
+                        <input type="tel" id="appt-phone-search" class="input" placeholder="+998901234567"
+                            onkeydown="if(event.key==='Enter') searchByPhone()">
+                    </div>
+                    <button onclick="searchByPhone()"
+                        style="padding:0.5rem 1rem;background:var(--bg-card,#fff);color:var(--text-main);border:1px solid var(--border);border-radius:0.5rem;cursor:pointer;font-size:0.85rem;display:inline-flex;align-items:center;gap:0.4rem;">
+                        <i data-lucide="user-search" style="width:14px;height:14px;"></i> Mijoz tarixi
+                    </button>
+                    <button onclick="clearPhoneSearch()" id="phone-search-clear" style="display:none;padding:0.5rem 0.75rem;background:none;border:1px solid var(--border);border-radius:0.5rem;cursor:pointer;color:var(--text-muted);">
+                        <i data-lucide="x" style="width:14px;height:14px;"></i>
+                    </button>
+                </div>
+                <div id="phone-search-result" style="display:none;margin-bottom:1rem;"></div>
                 <div id="manage-appointments-list"></div>
             </div>
 
@@ -605,26 +641,59 @@
             }
 
             // ==================== OVERVIEW ====================
-            async function loadOverview() {
+            function renderStats(d) {
+                const fmt = v => v != null ? Number(v).toLocaleString('uz-UZ') : '0';
+                const pct = v => v != null ? v.toFixed(1) + '%' : '0%';
+                document.getElementById('stats-container').innerHTML = `
+                    <div class="stat-card"><div class="stat-value">${fmt(d.totalAppointments)}</div><div class="stat-label">Jami navbatlar</div></div>
+                    <div class="stat-card"><div class="stat-value">${fmt(d.pendingAppointments)}</div><div class="stat-label">Kutilmoqda</div></div>
+                    <div class="stat-card"><div class="stat-value">${fmt(d.confirmedAppointments)}</div><div class="stat-label">Tasdiqlangan</div></div>
+                    <div class="stat-card"><div class="stat-value">${fmt(d.completedAppointments)}</div><div class="stat-label">Yakunlangan</div></div>
+                    <div class="stat-card"><div class="stat-value">${fmt(d.cancelledAppointments)}</div><div class="stat-label">Bekor qilingan</div></div>
+                    <div class="stat-card"><div class="stat-value">${fmt(d.noShowAppointments)}</div><div class="stat-label">No-show</div></div>
+                    <div class="stat-card" style="border-left:3px solid #059669;"><div class="stat-value" style="font-size:1.1rem;color:#059669;">${d.totalRevenue != null ? Number(d.totalRevenue).toLocaleString('uz-UZ') : '0'}</div><div class="stat-label">Daromad (so'm)</div></div>
+                    <div class="stat-card" style="border-left:3px solid #f59e0b;"><div class="stat-value" style="font-size:1.1rem;color:#f59e0b;">${d.pendingRevenue != null ? Number(d.pendingRevenue).toLocaleString('uz-UZ') : '0'}</div><div class="stat-label">Kutilayotgan (so'm)</div></div>
+                    <div class="stat-card"><div class="stat-value">${pct(d.completionRate)}</div><div class="stat-label">Yakunlash %</div></div>
+                    <div class="stat-card"><div class="stat-value">${pct(d.cancellationRate)}</div><div class="stat-label">Bekor %</div></div>
+                `;
+            }
+
+            async function loadStatsByRange(range) {
                 const sc = document.getElementById('stats-container');
-                const tc = document.getElementById('today-appointments');
                 sc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-                tc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-
+                ['all','week','month'].forEach(r => {
+                    const btn = document.getElementById(`stats-btn-${r}`);
+                    if (btn) { btn.className = 'btn'; btn.style.border = '1px solid var(--border)'; }
+                });
+                const activeBtn = document.getElementById(`stats-btn-${range}`);
+                if (activeBtn) { activeBtn.className = 'btn btn-primary'; activeBtn.style.border = ''; }
                 try {
-                    const stats = await api(`/api/${tenantId}/appointments/statistics`, { method: 'GET' });
-                    const d = stats.data || {};
-                    sc.innerHTML = `
-                        <div class="stat-card"><div class="stat-value">${d.totalAppointments ?? 0}</div><div class="stat-label">Jami navbatlar</div></div>
-                        <div class="stat-card"><div class="stat-value">${d.pendingAppointments ?? 0}</div><div class="stat-label">Kutilmoqda</div></div>
-                        <div class="stat-card"><div class="stat-value">${d.confirmedAppointments ?? 0}</div><div class="stat-label">Tasdiqlangan</div></div>
-                        <div class="stat-card"><div class="stat-value">${d.completedAppointments ?? 0}</div><div class="stat-label">Yakunlangan</div></div>
-                        <div class="stat-card"><div class="stat-value">${d.cancelledAppointments ?? 0}</div><div class="stat-label">Bekor qilingan</div></div>
-                    `;
+                    let url;
+                    if (range === 'week') {
+                        const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
+                        url = `/api/${tenantId}/appointments/statistics/date-range?startDate=${start.toISOString().split('T')[0]}&endDate=${end.toISOString().split('T')[0]}`;
+                    } else if (range === 'month') {
+                        const end = new Date(); const start = new Date(end.getFullYear(), end.getMonth(), 1);
+                        url = `/api/${tenantId}/appointments/statistics/date-range?startDate=${start.toISOString().split('T')[0]}&endDate=${end.toISOString().split('T')[0]}`;
+                    } else if (range === 'custom') {
+                        const s = document.getElementById('stats-start-date').value;
+                        const e = document.getElementById('stats-end-date').value;
+                        if (!s || !e) { sc.innerHTML = '<div class="empty">Sana oralig\'ini tanlang</div>'; return; }
+                        url = `/api/${tenantId}/appointments/statistics/date-range?startDate=${s}&endDate=${e}`;
+                    } else {
+                        url = `/api/${tenantId}/appointments/statistics`;
+                    }
+                    const res = await api(url, { method: 'GET' });
+                    renderStats(res.data || {});
                 } catch (e) {
-                    sc.innerHTML = `<div class="empty">Statistikani yuklashda xatolik: ${e.message}</div>`;
+                    sc.innerHTML = `<div class="empty">Statistika yuklanmadi: ${e.message}</div>`;
                 }
+            }
 
+            async function loadOverview() {
+                const tc = document.getElementById('today-appointments');
+                tc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                await loadStatsByRange('all');
                 try {
                     const today = await api(`/api/${tenantId}/appointments/today`, { method: 'GET' });
                     renderAppointmentRows(today.data || [], tc, true);
@@ -803,12 +872,13 @@
                 btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
 
                 try {
+                    const roleVal = document.getElementById('edit-staff-role').value.trim();
                     await api(`/api/${tenantId}/staff/${staffId}`, {
                         method: 'PUT',
                         body: JSON.stringify({
                             displayName: document.getElementById('edit-staff-display-name').value.trim(),
                             position: document.getElementById('edit-staff-position').value.trim(),
-                            role: document.getElementById('edit-staff-role').value
+                            role: roleVal || null
                         })
                     });
                     toast("Xodim ma'lumotlari yangilandi", 'success');
@@ -1138,10 +1208,8 @@
             async function loadAppointments() {
                 const container = document.getElementById('manage-appointments-list');
                 container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-
                 const dateFilter = document.getElementById('appt-date-filter').value;
                 const statusFilter = document.getElementById('appt-status-filter').value;
-
                 try {
                     let appointments;
                     if (dateFilter) {
@@ -1151,15 +1219,52 @@
                         const result = await api(`/api/${tenantId}/appointments/today`, { method: 'GET' });
                         appointments = result.data || [];
                     }
-
                     if (statusFilter) {
                         appointments = appointments.filter(a => a.status === statusFilter);
                     }
-
                     renderAppointmentRows(appointments, container, true);
                 } catch (e) {
                     container.innerHTML = `<div class="empty">Navbatlarni yuklashda xatolik: ${e.message}</div>`;
                 }
+            }
+
+            async function searchByPhone() {
+                const raw = document.getElementById('appt-phone-search').value.trim();
+                if (!raw) { toast('Telefon raqam kiriting', 'error'); return; }
+                const phone = raw.startsWith('+') ? raw.substring(1) : raw;
+                const phoneFormatted = phone.startsWith('998') ? phone : '998' + phone;
+
+                const resultEl = document.getElementById('phone-search-result');
+                const clearBtn = document.getElementById('phone-search-clear');
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                clearBtn.style.display = 'inline-flex';
+
+                try {
+                    const res = await api(`/api/${tenantId}/appointments/by-phone/${phoneFormatted}`, { method: 'GET' });
+                    const appts = res.data || [];
+                    const header = document.createElement('div');
+                    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;';
+                    header.innerHTML = `
+                        <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">
+                            <i data-lucide="user" style="width:13px;height:13px;vertical-align:middle;"></i>
+                            +${phoneFormatted} — barcha navbatlar (${appts.length} ta)
+                        </span>`;
+                    resultEl.innerHTML = '';
+                    resultEl.appendChild(header);
+                    const listDiv = document.createElement('div');
+                    resultEl.appendChild(listDiv);
+                    renderAppointmentRows(appts, listDiv, true);
+                    lucide.createIcons();
+                } catch (e) {
+                    resultEl.innerHTML = `<div class="empty">Topilmadi: ${e.message}</div>`;
+                }
+            }
+
+            function clearPhoneSearch() {
+                document.getElementById('appt-phone-search').value = '';
+                document.getElementById('phone-search-result').style.display = 'none';
+                document.getElementById('phone-search-clear').style.display = 'none';
             }
 
             function renderAppointmentRows(list, container, showActions) {
@@ -1199,6 +1304,10 @@
                             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.15rem;">
                                 ${a.appointmentDate || ''} ${time}
                             </div>
+                            ${a.status === 'CANCELLED' && a.cancelReason ? `
+                            <div style="margin-top:0.4rem;padding:0.3rem 0.5rem;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0.25rem;font-size:0.76rem;color:#7f1d1d;">
+                                <strong style="color:#dc2626;">Sabab:</strong> ${esc(a.cancelReason)}
+                            </div>` : ''}
                         </div>
                         <div style="text-align:right;flex-shrink:0;">
                             <span class="status-badge ${statusClass}">${a.statusDisplayName || a.status || ''}</span>

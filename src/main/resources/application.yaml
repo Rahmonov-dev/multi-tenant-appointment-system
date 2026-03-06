@@ -18,6 +18,9 @@ spring:
       hibernate:
         format_sql: true
         default_schema: public
+        default_batch_fetch_size: 30
+        jdbc:
+          fetch_size: 50
   flyway:
     enabled: true
     schemas: public

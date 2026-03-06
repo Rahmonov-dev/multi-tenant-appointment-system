@@ -36,7 +36,8 @@ public record AppointmentResponse(
         LocalDateTime confirmedAt,
         LocalDateTime completedAt,
         LocalDateTime cancelledAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String cancelReason
 ) {
     
     private static final DecimalFormat PRICE_FORMATTER = new DecimalFormat("#,###.00");
@@ -73,7 +74,8 @@ public record AppointmentResponse(
                 appointment.getConfirmedAt(),
                 appointment.getCompletedAt(),
                 appointment.getCancelledAt(),
-                appointment.getUpdatedAt()
+                appointment.getUpdatedAt(),
+                appointment.getCancelReason()
         );
     }
 }

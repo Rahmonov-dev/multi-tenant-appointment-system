@@ -28,7 +28,7 @@ public record CreateAppointmentRequest(
         String customerEmail,
 
         @NotNull(message = "Sana bo'sh bo'lmasligi kerak")
-        @Future(message = "Sana kelajakda bo'lishi kerak")
+        @FutureOrPresent(message = "Sana kelajakda bo'lishi kerak")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate appointmentDate,
 

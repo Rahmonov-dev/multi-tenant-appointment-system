@@ -445,28 +445,47 @@
         });
 
         // ==================== SCHEDULE ====================
+        let scheduleMap = {};
+
         async function loadSchedule() {
             const el = document.getElementById('schedule-content');
             el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             try {
                 const res = await api(`/api/${tenantId}/staff/${staffId}/schedules`, { method: 'GET' });
                 const schedules = res.data || [];
-                const map = {};
-                schedules.forEach(s => { map[s.dayOfWeek] = s; });
+                scheduleMap = {};
+                schedules.forEach(s => { scheduleMap[s.dayOfWeek] = s; });
+                renderScheduleView(el, false);
+            } catch (e) {
+                el.innerHTML = `<div class="empty">Jadval yuklashda xatolik: ${e.message}</div>`;
+            }
+        }
 
-                if (schedules.length === 0) {
-                    el.innerHTML = `<div class="empty">Jadval hali kiritilmagan. Salonning boshqaruvchisidan so'rang.</div>`;
-                    return;
-                }
+        function renderScheduleView(el, editMode) {
+            let html = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin:0;">Haftaning ish jadvali</p>
+                    ${!editMode
+                        ? `<button onclick="renderScheduleView(document.getElementById('schedule-content'),true)"
+                            style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:var(--primary);color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-size:0.82rem;">
+                            <i data-lucide="pencil" style="width:13px;height:13px;"></i> Tahrirlash
+                           </button>`
+                        : `<div style="display:flex;gap:0.5rem;">
+                            <button onclick="saveScheduleAll()"
+                                style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:#059669;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-size:0.82rem;">
+                                <i data-lucide="save" style="width:13px;height:13px;"></i> Saqlash
+                            </button>
+                            <button onclick="loadSchedule()"
+                                style="padding:0.4rem 0.9rem;background:none;border:1px solid var(--border);border-radius:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--text-muted);">
+                                Bekor
+                            </button>
+                           </div>`}
+                </div>`;
 
-                let html = `
-                    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
-                        Haftaning ish jadvali. O'zgartirish uchun salon boshqaruvchisiga murojaat qiling.
-                    </p>
-                    <div class="sched-grid">`;
-
+            if (!editMode) {
+                html += '<div class="sched-grid">';
                 for (let d = 1; d <= 7; d++) {
-                    const s = map[d];
+                    const s = scheduleMap[d];
                     if (s && s.isAvailable) {
                         const start = (s.startTime || '').substring(0, 5);
                         const end = (s.endTime || '').substring(0, 5);
@@ -490,10 +509,90 @@
                     }
                 }
                 html += '</div>';
-                el.innerHTML = html;
-                lucide.createIcons();
+            } else {
+                html += `<div style="display:flex;flex-direction:column;gap:0.75rem;">`;
+                for (let d = 1; d <= 7; d++) {
+                    const s = scheduleMap[d];
+                    const avail = s && s.isAvailable;
+                    const start = avail ? (s.startTime || '09:00').substring(0, 5) : '09:00';
+                    const end   = avail ? (s.endTime   || '18:00').substring(0, 5) : '18:00';
+                    const slotDur = s && s.slotDuration ? s.slotDuration : 30;
+                    html += `
+                        <div style="display:grid;grid-template-columns:110px 1fr;align-items:center;gap:1rem;padding:0.75rem;border:1px solid var(--border);border-radius:0.5rem;background:var(--bg-card,#fff);" id="sched-row-${d}">
+                            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;font-weight:500;">
+                                <input type="checkbox" id="sched-avail-${d}" ${avail ? 'checked' : ''} onchange="toggleSchedRow(${d})"
+                                    style="width:16px;height:16px;accent-color:var(--primary);">
+                                ${DAY_NAMES[d]}
+                            </label>
+                            <div id="sched-times-${d}" style="display:${avail ? 'flex' : 'none'};gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:0.2rem;">Boshlanish</label>
+                                    <input type="time" id="sched-start-${d}" class="input" value="${start}" style="max-width:110px;">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:0.2rem;">Tugash</label>
+                                    <input type="time" id="sched-end-${d}" class="input" value="${end}" style="max-width:110px;">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:0.2rem;">Slot (daqiqa)</label>
+                                    <select id="sched-slot-${d}" class="input" style="max-width:90px;">
+                                        ${[15,20,30,45,60].map(v => `<option value="${v}" ${v===slotDur?'selected':''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            ${avail ? '' : `<span id="sched-off-label-${d}" style="font-size:0.82rem;color:var(--text-muted);">Dam olish kuni</span>`}
+                        </div>`;
+                }
+                html += '</div>';
+            }
+
+            el.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function toggleSchedRow(d) {
+            const avail = document.getElementById(`sched-avail-${d}`).checked;
+            const timesEl = document.getElementById(`sched-times-${d}`);
+            const offLabel = document.getElementById(`sched-off-label-${d}`);
+            if (timesEl) timesEl.style.display = avail ? 'flex' : 'none';
+            if (offLabel) offLabel.style.display = avail ? 'none' : 'inline';
+        }
+
+        async function saveScheduleAll() {
+            const promises = [];
+            for (let d = 1; d <= 7; d++) {
+                const cb = document.getElementById(`sched-avail-${d}`);
+                if (!cb) continue;
+                const isAvail = cb.checked;
+                const startVal = isAvail ? (document.getElementById(`sched-start-${d}`)?.value || '09:00') : null;
+                const endVal   = isAvail ? (document.getElementById(`sched-end-${d}`)?.value   || '18:00') : null;
+                const slotVal  = isAvail ? parseInt(document.getElementById(`sched-slot-${d}`)?.value  || '30') : 30;
+
+                if (isAvail && startVal >= endVal) {
+                    toast(`${DAY_NAMES[d]}: Boshlanish vaqti tugash vaqtidan kichik bo'lishi kerak`, 'error');
+                    return;
+                }
+
+                promises.push(
+                    api(`/api/${tenantId}/staff/${staffId}/schedules`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            dayOfWeek: d,
+                            isAvailable: isAvail,
+                            startTime: startVal ? startVal + ':00' : null,
+                            endTime: endVal ? endVal + ':00' : null,
+                            slotDuration: slotVal
+                        })
+                    }).then(r => { scheduleMap[d] = r.data; })
+                );
+            }
+            try {
+                await Promise.all(promises);
+                toast('Jadval saqlandi!', 'success');
+                renderScheduleView(document.getElementById('schedule-content'), false);
             } catch (e) {
-                el.innerHTML = `<div class="empty">Jadval yuklashda xatolik: ${e.message}</div>`;
+                toast(e.message || 'Saqlashda xatolik', 'error');
             }
         }
 
@@ -581,6 +680,11 @@
                             <div style="font-weight:700;color:var(--primary);margin-top:0.3rem;font-size:0.9rem;">${a.formattedPrice || ''}</div>
                             ${histActions}
                         </div>
+                        ${a.status === 'CANCELLED' && a.cancelReason ? `
+                        <div style="width:100%;margin-top:0.5rem;padding:0.35rem 0.6rem;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0.25rem;font-size:0.78rem;color:#7f1d1d;">
+                            <i data-lucide="alert-circle" style="width:11px;height:11px;vertical-align:middle;color:#dc2626;"></i>
+                            <strong style="color:#dc2626;">Sabab:</strong> ${a.cancelReason}
+                        </div>` : ''}
                     `;
                     listEl.appendChild(row);
                 });
@@ -593,14 +697,37 @@
 
         function renderHistoryPagination(container) {
             if (historyTotalPages <= 1) return;
+
+            const mkBtn = (label, page, active, disabled) => {
+                const b = document.createElement('button');
+                b.textContent = label;
+                b.className = 'btn';
+                b.disabled = disabled;
+                b.style.cssText = `padding:0.3rem 0.75rem;font-size:0.82rem;min-width:2.2rem;`
+                    + (active ? 'background:var(--primary);color:#fff;border-color:var(--primary);'
+                              : 'border:1px solid var(--border);')
+                    + (disabled ? 'opacity:0.4;cursor:default;' : '');
+                if (!disabled) b.onclick = () => loadHistory(page);
+                return b;
+            };
+
+            container.appendChild(mkBtn('←', historyCurrentPage - 1, false, historyCurrentPage === 0));
+
+            // Ko'p sahifa bo'lsa faqat yaqin sahifalarni ko'rsatamiz
+            const range = 2;
             for (let i = 0; i < historyTotalPages; i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i + 1;
-                btn.className = 'btn';
-                btn.style.cssText = `padding:0.3rem 0.75rem;font-size:0.82rem;min-width:2.2rem;${i === historyCurrentPage ? 'background:var(--primary);color:#fff;border-color:var(--primary);' : 'border:1px solid var(--border);'}`;
-                btn.onclick = () => loadHistory(i);
-                container.appendChild(btn);
+                if (i === 0 || i === historyTotalPages - 1 ||
+                    (i >= historyCurrentPage - range && i <= historyCurrentPage + range)) {
+                    container.appendChild(mkBtn(i + 1, i, i === historyCurrentPage, false));
+                } else if (i === historyCurrentPage - range - 1 || i === historyCurrentPage + range + 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '…';
+                    dots.style.cssText = 'padding:0.3rem 0.4rem;color:var(--text-muted);font-size:0.82rem;';
+                    container.appendChild(dots);
+                }
             }
+
+            container.appendChild(mkBtn('→', historyCurrentPage + 1, false, historyCurrentPage >= historyTotalPages - 1));
         }
 
         // ==================== STAFF PROFILE ====================

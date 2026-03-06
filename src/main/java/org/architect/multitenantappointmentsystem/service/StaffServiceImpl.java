@@ -15,6 +15,7 @@ import org.architect.multitenantappointmentsystem.exception.BadRequestException;
 import org.architect.multitenantappointmentsystem.exception.BusinessException;
 import org.architect.multitenantappointmentsystem.exception.NotFoundException;
 import org.architect.multitenantappointmentsystem.repository.*;
+import org.architect.multitenantappointmentsystem.security.AuthUser;
 import org.architect.multitenantappointmentsystem.service.interfaces.AuthService;
 import org.architect.multitenantappointmentsystem.service.interfaces.StaffService;
 import org.springframework.data.domain.Page;
@@ -130,6 +131,9 @@ public class StaffServiceImpl implements StaffService {
             throw new AccessDeniedException("Bu staff boshqa tenantga tegishli");
         }
 
+        if (currentStaff.getId().equals(id)&&request.role() != null) {
+            throw new  BadRequestException("OWNER roli o'zgarmas");
+        }
         if (request.role() != null) {
             staffToUpdate.setRole(request.role());
         }
@@ -149,10 +153,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional(readOnly = true)
     public List<StaffResponse> getAllStaffByTenant(UUID tenantId) {
-        Staff currentStaff = currentStaffService.getCurrentStaff(tenantId);
-        if (currentStaff.getRole() != StaffRole.OWNER && currentStaff.getRole() != StaffRole.MANAGER) {
-            throw new AccessDeniedException("Ruxsat yo‘q");
-        }
+       currentStaffService.requireOwnerOrManager(tenantId);
 
         return staffRepository.findByTenantId(tenantId)
                 .stream()
@@ -292,7 +293,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public StaffResponse activateStaff(UUID tenantId, UUID id) {
-
+        currentStaffService.requireOwnerOrManager(tenantId);
         Staff staff = staffRepository
                 .findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + id));
@@ -305,12 +306,13 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public StaffResponse deactivateStaff(UUID tenantId, UUID id) {
-
+        currentStaffService.requireOwnerOrManager(tenantId);
         Staff staff = staffRepository
                 .findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new NotFoundException("Staff topilmadi: " + id));
 
         staff.setIsActive(false);
+        staffRepository.save(staff);
 
         return StaffResponse.fromEntity(staff);
     }
@@ -497,4 +499,5 @@ public class StaffServiceImpl implements StaffService {
                 totalSchedules,
                 availableSchedules);
     }
+
 }

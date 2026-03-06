@@ -32,4 +32,23 @@ public class CurrentStaffService {
             throw new AccessDeniedException("Ruxsat yo‘q");
         }
     }
+
+    public Staff requireActiveStaff(UUID tenantId) {
+        Staff staff = getCurrentStaff(tenantId);
+
+        if (staff.getIsActive() == null || !staff.getIsActive()) {
+            throw new AccessDeniedException("Xodim aktiv emas");
+        }
+
+        return staff;
+    }
+
+    public void requireStaffRole(UUID tenantId) {
+        Staff staff = getCurrentStaff(tenantId);
+
+        if (staff.getRole() != StaffRole.STAFF&& staff.getRole() != StaffRole.OWNER &&
+                staff.getRole() != StaffRole.MANAGER) {
+            throw new AccessDeniedException("Ruxsat yo‘q");
+        }
+    }
 }

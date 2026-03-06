@@ -1,6 +1,4 @@
 package org.architect.multitenantappointmentsystem.repository;
-
-import aj.org.objectweb.asm.commons.Remapper;
 import org.architect.multitenantappointmentsystem.entity.Appointment;
 import org.architect.multitenantappointmentsystem.entity.AppointmentStatus;
 import org.springframework.data.domain.Page;
@@ -12,9 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,8 +24,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
 
     @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
             "AND a.appointmentDate = :date " +
-            "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByTenantIdAndAppointmentDate(
             @Param("tenantId") UUID tenantId,
             @Param("date") LocalDate date);
@@ -38,6 +34,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
             "AND a.appointmentDate = :date " +
             "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByStaffIdAndAppointmentDate(
             @Param("staffId") UUID staffId,
             @Param("date") LocalDate date);
@@ -46,6 +43,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
             "AND a.appointmentDate = :date " +
             "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByEmployementIdAndAppointmentDate(
             @Param("serviceId") UUID serviceId,
             @Param("date") LocalDate date);
@@ -53,6 +51,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
     @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
             "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
             "ORDER BY a.appointmentDate, a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByTenantIdAndDateRange(@Param("tenantId") UUID tenantId,
                                                  @Param("startDate") LocalDate startDate,
                                                  @Param("endDate") LocalDate endDate);
@@ -60,6 +59,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
     @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
             "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
             "ORDER BY a.appointmentDate, a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByStaffIdAndDateRange(@Param("staffId") UUID staffId,
                                                 @Param("startDate") LocalDate startDate,
                                                 @Param("endDate") LocalDate endDate);
@@ -73,6 +73,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
     @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
             "AND a.appointmentDate = :date AND a.status IN :statuses " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findByTenantIdAndDateAndStatuses(@Param("tenantId") UUID tenantId,
                                                        @Param("date") LocalDate date,
                                                        @Param("statuses") List<AppointmentStatus> statuses);
@@ -80,6 +81,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
     @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
             "AND a.appointmentDate = :date AND a.status IN :statuses " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findActiveAppointments(@Param("staffId") UUID staffId,
                                              @Param("date") LocalDate date,
                                              @Param("statuses") List<AppointmentStatus> statuses);
@@ -154,12 +156,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
             "AND a.appointmentDate = CURRENT_DATE " +
             "AND a.status IN ('PENDING', 'CONFIRMED') " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findTodayAppointments(@Param("tenantId") UUID tenantId);
 
     @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId " +
             "AND a.appointmentDate = CURRENT_DATE " +
             "AND a.status IN ('PENDING', 'CONFIRMED') " +
             "ORDER BY a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findTodayAppointmentsByStaff(@Param("staffId") UUID staffId);
 
     // ==================== UPCOMING APPOINTMENTS ====================
@@ -168,6 +172,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
             "AND a.appointmentDate >= CURRENT_DATE " +
             "AND a.status IN ('PENDING', 'CONFIRMED') " +
             "ORDER BY a.appointmentDate, a.startTime")
+    @EntityGraph(attributePaths = {"staff", "tenant", "employement"})
     List<Appointment> findUpcomingAppointments(@Param("tenantId") UUID tenantId, Pageable pageable);
 
     // ==================== PAST APPOINTMENTS ====================
@@ -225,4 +230,36 @@ public interface AppointmentRepository extends JpaRepository<Appointment, java.u
 
     @Query("SELECT a FROM Appointment a WHERE a.staff.id = :staffId AND a.tenant.id = :tenantId AND a.status = :status ORDER BY a.appointmentDate DESC, a.startTime DESC")
     Page<Appointment> findByStaffIdAndTenantIdAndStatus( @Param("tenantId") UUID tenantId,@Param("staffId") UUID staffId, @Param("status") AppointmentStatus status, Pageable pageable);
+    @Query("SELECT a FROM Appointment a WHERE a.tenant.id = :tenantId " +
+            "AND (:activeOnly = false OR a.status IN ('PENDING', 'CONFIRMED'))")
+    Page<Appointment> findByTenantIdActive(
+            @Param("tenantId") UUID tenantId,
+            @Param("activeOnly") Boolean activeOnly,
+            Pageable pageable);
+
+    // ========== AGGREGATE QUERIES (statistika uchun - xotiraga yuklamaydi) ==========
+
+    @Query("SELECT a.status, COUNT(a), COALESCE(SUM(a.totalPrice), 0) " +
+            "FROM Appointment a WHERE a.tenant.id = :tenantId " +
+            "GROUP BY a.status")
+    List<Object[]> countAndSumByStatusForTenant(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT a.status, COUNT(a), COALESCE(SUM(a.totalPrice), 0) " +
+            "FROM Appointment a WHERE a.tenant.id = :tenantId " +
+            "AND a.appointmentDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY a.status")
+    List<Object[]> countAndSumByStatusForTenantInRange(
+            @Param("tenantId") UUID tenantId,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate);
+
+    @Query("SELECT COUNT(DISTINCT a.appointmentDate) FROM Appointment a WHERE a.tenant.id = :tenantId")
+    long countDistinctDaysForTenant(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT COUNT(DISTINCT a.appointmentDate) FROM Appointment a WHERE a.tenant.id = :tenantId " +
+            "AND a.appointmentDate BETWEEN :startDate AND :endDate")
+    long countDistinctDaysForTenantInRange(
+            @Param("tenantId") UUID tenantId,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate);
 }

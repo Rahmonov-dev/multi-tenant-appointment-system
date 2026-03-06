@@ -12,41 +12,63 @@
 
         <div id="profile-content" style="display:none;">
 
-            <!-- ===== User Info ===== -->
-            <div class="page-header" style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
-                <div
-                    style="width:72px;height:72px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i data-lucide="user" style="width:36px;height:36px;color:#fff;"></i>
+            <!-- ===== Two-column layout ===== -->
+            <div style="display:grid;grid-template-columns:280px 1fr;gap:2rem;align-items:start;">
+
+                <!-- LEFT: User Info Sidebar -->
+                <div style="position:sticky;top:1.5rem;">
+                    <div style="background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;text-align:center;">
+                        <div style="width:72px;height:72px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <i data-lucide="user" style="width:36px;height:36px;color:#fff;"></i>
+                        </div>
+                        <h2 id="profile-name" style="margin:0 0 0.25rem;font-size:1.1rem;font-weight:700;">-</h2>
+                        <p id="profile-email" style="color:var(--text-muted);font-size:0.83rem;margin:0 0 0.15rem;word-break:break-all;"></p>
+                        <p id="profile-phone" style="color:var(--text-muted);font-size:0.83rem;margin:0 0 0.75rem;"></p>
+                        <div id="profile-roles" style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:center;"></div>
+                    </div>
+
+                    <!-- Owner / Staff links in sidebar -->
+                    <div id="owner-section" style="display:none;margin-top:1rem;">
+                        <div style="background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+                            <div style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.04em;">Biznesim</div>
+                            <a id="owner-tenant-link" href="#" class="btn btn-primary" style="display:block;text-align:center;text-decoration:none;">
+                                <i data-lucide="layout-dashboard" style="width:14px;height:14px;vertical-align:middle;"></i>
+                                Boshqaruv paneli
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Create org button in sidebar -->
+                    <div id="create-org-section" style="display:none;margin-top:1rem;">
+                        <div style="background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+                            <div style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.04em;">Biznes</div>
+                            <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.75rem;">Mijozlaringiz online navbat olsin</p>
+                            <button onclick="openCreateOrgModal()" class="btn btn-primary" style="width:100%;">
+                                <i data-lucide="plus" style="width:14px;height:14px;"></i> Yaratish
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- RIGHT: Appointments -->
                 <div>
-                    <h1 class="page-title" id="profile-name" style="margin:0;">-</h1>
-                    <p id="profile-email" style="color:var(--text-muted);margin:0.2rem 0;"></p>
-                    <p id="profile-phone" style="color:var(--text-muted);margin:0;"></p>
-                    <div id="profile-roles" style="margin-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap;"></div>
-                </div>
-            </div>
+                    <h2 style="font-size:1.1rem;font-weight:700;margin:0 0 1rem;display:flex;align-items:center;gap:0.5rem;">
+                        <i data-lucide="calendar-check" style="width:18px;height:18px;color:var(--primary);"></i>
+                        Mening Navbatlarim
+                    </h2>
 
-            <!-- ===== Appointments ===== -->
-            <div style="margin-top:2rem;">
-                <h2
-                    style="font-size:1.2rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i data-lucide="calendar-check"></i> Mening Navbatlarim
-                </h2>
+                    <!-- Tabs -->
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;border-bottom:2px solid var(--border);">
+                        <button id="tab-upcoming" class="tab-btn tab-active" onclick="switchTab('upcoming')">
+                            <i data-lucide="clock" style="width:14px;height:14px;"></i> Faol navbatlar
+                        </button>
+                        <button id="tab-past" class="tab-btn" onclick="switchTab('past')">
+                            <i data-lucide="history" style="width:14px;height:14px;"></i> O'tgan navbatlar
+                        </button>
+                    </div>
 
-                <!-- Tabs -->
-                <div
-                    style="display:flex;gap:0.5rem;margin-bottom:1.25rem;border-bottom:2px solid var(--border);padding-bottom:0;">
-                    <button id="tab-upcoming" class="tab-btn tab-active" onclick="switchTab('upcoming')">
-                        <i data-lucide="clock" style="width:14px;height:14px;"></i> Faol navbatlar
-                    </button>
-                    <button id="tab-past" class="tab-btn" onclick="switchTab('past')">
-                        <i data-lucide="history" style="width:14px;height:14px;"></i> O'tgan navbatlar
-                    </button>
-                </div>
-
-                <div id="appointments-container">
-                    <div class="loading">
-                        <div class="spinner"></div>
+                    <div id="appointments-container">
+                        <div class="loading"><div class="spinner"></div></div>
                     </div>
                 </div>
             </div>
@@ -112,17 +134,19 @@
                 </div>
             </div>
 
-            <!-- ===== Create Organization ===== -->
-            <div id="create-org-section" style="display:none; margin-top:3rem;">
-                <h2
-                    style="font-size:1.2rem;font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i data-lucide="building-2"></i> Organizatsiya Yaratish
-                </h2>
-                <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">
-                    O'z biznesingizni ro'yxatga oling va mijozlaringiz navbat olishini ta'minlang.
-                </p>
 
-                <div class="card" style="cursor:default;max-width:680px;">
+            <!-- ===== Create Organization Modal ===== -->
+            <div id="create-org-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;overflow-y:auto;padding:1rem;">
+                <div style="background:var(--bg-card,#fff);border-radius:1rem;padding:1.5rem;max-width:620px;margin:2rem auto;position:relative;">
+                    <button onclick="closeCreateOrgModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    </button>
+                    <h2 style="font-size:1.1rem;font-weight:600;margin:0 0 0.25rem;display:flex;align-items:center;gap:0.5rem;">
+                        <i data-lucide="building-2" style="width:18px;height:18px;color:var(--primary);"></i>
+                        Organizatsiya yaratish
+                    </h2>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 1.25rem;">O'z biznesingizni ro'yxatga oling.</p>
+
                     <form id="create-tenant-form">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                             <div class="form-group" style="grid-column:1/-1;">
@@ -130,7 +154,7 @@
                                 <select id="businessType" class="input" required>
                                     <option value="">Tanlang...</option>
                                     <option value="BARBERSHOP">Sartaroshxona</option>
-                                    <option value="BEAUTY_SALON">Güzellik saloni</option>
+                                    <option value="BEAUTY_SALON">Go'zallik saloni</option>
                                     <option value="MEDICAL_CLINIC">Tibbiy klinika</option>
                                     <option value="FITNESS_CENTER">Fitness markaz</option>
                                     <option value="SPA_CENTER">Spa markaz</option>
@@ -139,81 +163,68 @@
                                     <option value="OTHER">Boshqa</option>
                                 </select>
                             </div>
-
                             <div class="form-group" style="grid-column:1/-1;">
                                 <label class="label">Organizatsiya nomi *</label>
                                 <input type="text" id="organizationName" class="input" required
                                     placeholder="Mening Salonlarim" maxlength="200">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Email *</label>
                                 <input type="email" id="orgEmail" class="input" required placeholder="salon@mail.com">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Telefon *</label>
                                 <input type="tel" id="orgPhone" class="input" required placeholder="+998901234567">
                             </div>
-
                             <div class="form-group" style="grid-column:1/-1;">
                                 <label class="label">Manzil *</label>
                                 <input type="text" id="orgAddress" class="input" required
                                     placeholder="Toshkent, Chilonzor 12-uy" maxlength="500">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Ish boshlanishi *</label>
                                 <input type="time" id="workStart" class="input" required value="09:00">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Ish tugashi *</label>
                                 <input type="time" id="workEnd" class="input" required value="18:00">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Slot davomiyligi (daqiqa) *</label>
-                                <input type="number" id="slotDuration" class="input" required value="30" min="15"
-                                    max="240">
+                                <input type="number" id="slotDuration" class="input" required value="30" min="15" max="240">
                             </div>
-
                             <div class="form-group">
                                 <label class="label">Oldindan bron (kun) *</label>
-                                <input type="number" id="advanceBookingDays" class="input" required value="7" min="1"
-                                    max="365">
+                                <input type="number" id="advanceBookingDays" class="input" required value="7" min="1" max="365">
                             </div>
-
-                            <div class="form-group"
-                                style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;">
+                            <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;">
                                 <input type="checkbox" id="autoConfirm" style="width:18px;height:18px;cursor:pointer;">
-                                <label for="autoConfirm" class="label" style="margin:0;cursor:pointer;">Navbatlarni
-                                    avtomatik tasdiqlash</label>
+                                <label for="autoConfirm" class="label" style="margin:0;cursor:pointer;">Navbatlarni avtomatik tasdiqlash</label>
                             </div>
                         </div>
-
                         <div id="org-error" class="error-box"></div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;"
-                            id="create-org-btn">
-                            Organizatsiya yaratish
-                        </button>
+                        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+                            <button type="button" onclick="closeCreateOrgModal()" class="btn" style="flex:1;border:1px solid var(--border);">Bekor</button>
+                            <button type="submit" class="btn btn-primary" style="flex:1;" id="create-org-btn">
+                                Yaratish
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
 
-            <!-- If user is OWNER, show their tenant info -->
-            <div id="owner-section" style="display:none; margin-top:3rem;">
-                <h2 style="font-size:1.2rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
-                    <i data-lucide="building-2"></i> Mening Organizatsiyam
-                </h2>
-                <p style="color:var(--text-muted);font-size:0.9rem;">Sizda allaqachon organizatsiya mavjud.</p>
-                <a id="owner-tenant-link" href="#" class="btn-sm" style="display:inline-block;margin-top:0.75rem;">
-                    Boshqaruv paneliga o'tish →
-                </a>
-            </div>
+            </div><!-- end two-column grid -->
         </div>
 
         <style>
+            @media (max-width: 640px) {
+                #profile-content > div[style*="grid-template-columns"] {
+                    grid-template-columns: 1fr !important;
+                }
+                #profile-content > div > div[style*="sticky"] {
+                    position: static !important;
+                }
+            }
             .tab-btn {
                 padding: 0.5rem 1rem;
                 background: transparent;
@@ -329,13 +340,29 @@
                                 <i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;"></i>
                                 ${date} &bull; ${time}
                             </div>
+                            ${a.status === 'CANCELLED' && a.cancelReason ? `
+                            <div style="margin-top:0.5rem;padding:0.4rem 0.6rem;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0.25rem;">
+                                <span style="font-size:0.76rem;color:#dc2626;font-weight:600;">
+                                    <i data-lucide="alert-circle" style="width:11px;height:11px;vertical-align:middle;"></i>
+                                    Bekor qilish sababi:
+                                </span>
+                                <span style="font-size:0.78rem;color:#7f1d1d;margin-left:0.25rem;">${a.cancelReason}</span>
+                            </div>` : ''}
                             ${canAct ? `
                             <div style="display:flex;gap:0.4rem;margin-top:0.6rem;flex-wrap:wrap;">
-                                <button onclick="openRescheduleModal('${a.id}','${a.tenantId}','${a.staffId}','${a.serviceId}','${a.serviceName || ''}')"
+                                <button class="appt-reschedule-btn"
+                                    data-id="${a.id}" data-tenant="${a.tenantId}"
+                                    data-staff="${a.staffId}" data-service="${a.serviceId}"
+                                    data-name="${(a.serviceName||'').replace(/"/g,'&quot;')}"
+                                    onclick="openRescheduleModalFromEl(this)"
                                     style="padding:0.25rem 0.6rem;font-size:0.76rem;border:1px solid var(--primary);color:var(--primary);background:transparent;border-radius:0.35rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                                     <i data-lucide="calendar-clock" style="width:11px;height:11px;"></i> Vaqtni o'zgartirish
                                 </button>
-                                <button onclick="openCancelModal('${a.id}','${a.tenantId}','${a.serviceName || ''}','${date}','${time}')"
+                                <button class="appt-cancel-btn"
+                                    data-id="${a.id}" data-tenant="${a.tenantId}"
+                                    data-name="${(a.serviceName||'').replace(/"/g,'&quot;')}"
+                                    data-date="${date}" data-time="${time}"
+                                    onclick="openCancelModalFromEl(this)"
                                     style="padding:0.25rem 0.6rem;font-size:0.76rem;border:1px solid #dc2626;color:#dc2626;background:transparent;border-radius:0.35rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                                     <i data-lucide="x-circle" style="width:11px;height:11px;"></i> Bekor qilish
                                 </button>
@@ -353,6 +380,21 @@
 
             // ===== CANCEL =====
             let cancelApptId = null, cancelTenantId = null;
+
+            function openRescheduleModalFromEl(btn) {
+                openRescheduleModal(
+                    btn.dataset.id, btn.dataset.tenant,
+                    btn.dataset.staff, btn.dataset.service,
+                    btn.dataset.name
+                );
+            }
+
+            function openCancelModalFromEl(btn) {
+                openCancelModal(
+                    btn.dataset.id, btn.dataset.tenant,
+                    btn.dataset.name, btn.dataset.date, btn.dataset.time
+                );
+            }
 
             function openCancelModal(apptId, tenantId, serviceName, date, time) {
                 cancelApptId = apptId;
@@ -564,6 +606,17 @@
             });
 
             // Create tenant form submit
+            function openCreateOrgModal() {
+                document.getElementById('create-org-modal').style.display = 'block';
+                lucide.createIcons();
+            }
+            function closeCreateOrgModal() {
+                document.getElementById('create-org-modal').style.display = 'none';
+            }
+            document.addEventListener('click', e => {
+                if (e.target === document.getElementById('create-org-modal')) closeCreateOrgModal();
+            });
+
             document.getElementById('create-tenant-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 clearError('org-error');

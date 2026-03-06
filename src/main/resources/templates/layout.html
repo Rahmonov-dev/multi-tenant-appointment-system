@@ -94,12 +94,17 @@
                 data = { success: res.ok, message: text };
             }
 
-            // Token expired or unauthorized → clear and redirect
-            if (res.status === 401 || res.status === 403) {
+            // Token expired → clear and redirect to login
+            if (res.status === 401) {
                 localStorage.removeItem('token');
                 const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
                 window.location.href = `/dashboard/login?returnUrl=${returnUrl}`;
                 throw new Error('Unauthorized');
+            }
+            // Permission denied → just throw error (don't log out)
+            if (res.status === 403) {
+                const msg = (data && data.message) ? data.message : 'Ruxsat yo\'q';
+                throw new Error(msg);
             }
 
             if (!res.ok || (data && data.success === false)) {

@@ -64,6 +64,9 @@ public class Appointment {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
+    @Column(name = "cancel_reason", columnDefinition = "TEXT")
+    private String cancelReason;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
