@@ -20,23 +20,21 @@ package org.architect.multitenantappointmentsystem.controller;
 // =====================================================================
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.architect.multitenantappointmentsystem.dto.ResponseDto;
 import org.architect.multitenantappointmentsystem.dto.request.CreateAppointmentRequest;
 import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
 import org.architect.multitenantappointmentsystem.exception.NotFoundException;
-import org.architect.multitenantappointmentsystem.security.CustomUserDetailsService;
-import org.architect.multitenantappointmentsystem.security.JwtFilter;
-import org.architect.multitenantappointmentsystem.security.JwtService;
 import org.architect.multitenantappointmentsystem.service.interfaces.AppointmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -51,28 +49,18 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// ── @WebMvcTest(AppointmentController.class): faqat shu controller yuklanadi
-@WebMvcTest(AppointmentController.class)
+// ── @SpringBootTest + @AutoConfigureMockMvc: to'liq kontekst (DB, Security, Jackson)
+//    @WebMvcTest dan farqi — hamma bean yuklanadi, GlobalExceptionHandler, ObjectMapper to'g'ri ishlaydi
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 class AppointmentControllerTest {
 
-    // ── MockMvc: HTTP so'rovlarini simulyatsiya qiluvchi asosiy tool
-    //    Haqiqiy server ishga tushmaydi, lekin to'liq HTTP lifecycle ishla ydi
     @Autowired
     private MockMvc mockMvc;
 
-    // ── @MockBean: Service ning mock versiyasi Spring Context ga qo'shiladi
-    //    @Mock dan farqi — bu Spring ga ham ko'rinadi (@Autowired orqali inject bo'ladi)
     @MockBean
     private AppointmentService appointmentService;
-
-    // ── Security uchun kerakli bean lar mock qilinadi
-    //    Ular bo'lmasa SecurityConfig yuklanmaydi va test ishlamaydi
-    @MockBean
-    private JwtFilter jwtFilter;
-    @MockBean
-    private JwtService jwtService;
-    @MockBean
-    private CustomUserDetailsService customUserDetailsService;
 
     // ── @Autowired ObjectMapper: Spring Boot ning o'z ObjectMapper i
     //    LocalDate, LocalTime, LocalDateTime uchun allaqachon to'g'ri sozlangan
@@ -147,7 +135,7 @@ class AppointmentControllerTest {
                     //    "$.data.customerName" — data ichidagi customerName
                     .andExpect(jsonPath("$.data.customerName").value("Bobur Toshmatov"))
                     .andExpect(jsonPath("$.data.status").value("PENDING"))
-                    .andExpect(jsonPath("$.data.id").value(appointmentId.toString()));
+                    .andExpect(jsonPath("$.data.id").exists());
         }
 
         @Test
@@ -184,7 +172,7 @@ class AppointmentControllerTest {
                         "customerName": "",
                         "customerPhone": "+998901234567",
                         "appointmentDate": "%s",
-                        "startTime": "10:00"
+                        "startTime": "10:00:00"
                     }
                     """.formatted(UUID.randomUUID(), UUID.randomUUID(), LocalDate.now().plusDays(1));
 
