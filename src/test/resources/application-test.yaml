@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop        # Test boshida schema yaratadi, oxirida o'chiradi
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: false                 # H2 da Flyway o'chirilgan — Hibernate DDL yetarli
+
+jwt:
+  secret: 753778214125442A472D4B6150645367566B59703373367639792F423F452848
+  expiration: 86400000
+  refresh-token: 2592000000

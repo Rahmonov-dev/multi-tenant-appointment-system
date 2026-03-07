@@ -32,7 +32,6 @@ public class TenantServiceImpl implements TenantService {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
-    private final StaffServiceImpl staffServiceImpl;
 
     @Override
     @Transactional
