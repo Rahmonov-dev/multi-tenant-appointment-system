@@ -19,24 +19,25 @@ import java.util.UUID;
 public interface StaffRepository extends JpaRepository<Staff, java.util.UUID> {
 
     // Basic queries
-    @EntityGraph(attributePaths = {"user", "tenant", "employements", "schedules"})
+    // "schedules" + "employements" birgalikda MultipleBagFetchException chiqaradi
+    // schedules batch_fetch_size=30 orqali yuklanadi
+    @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     List<Staff> findByTenantId(UUID tenantId);
 
-    @EntityGraph(attributePaths = {"user", "tenant", "employements", "schedules"})
+    @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     List<Staff> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive);
 
-    // Page metodlarda "schedules" qo'shilmaydi — kolleksiya bilan Page Hibernate da in-memory pagination qiladi
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     Page<Staff> findByTenantId(UUID tenantId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     Page<Staff> findByTenantIdAndIsActive(UUID tenantId, Boolean isActive, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "tenant", "employements", "schedules"})
+    @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     Optional<Staff> findByIdAndTenantId(UUID id, UUID tenantId);
 
     // Role-based queries
-    @EntityGraph(attributePaths = {"user", "tenant", "employements", "schedules"})
+    @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     List<Staff> findByTenantIdAndRole(UUID tenantId, StaffRole role);
 
     List<Staff> findByTenantIdAndRoleAndIsActive(UUID tenantId, StaffRole role, Boolean isActive);
@@ -67,7 +68,7 @@ public interface StaffRepository extends JpaRepository<Staff, java.util.UUID> {
 
     List<Staff> findByUserId(UUID id);
 
-    @EntityGraph(attributePaths = {"user", "tenant", "employements", "schedules"})
+    @EntityGraph(attributePaths = {"user", "tenant", "employements"})
     Optional<Staff> findByTenantIdAndUserId(UUID tenantId, UUID userId);
 
 }

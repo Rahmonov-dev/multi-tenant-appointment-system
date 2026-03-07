@@ -20,7 +20,6 @@ package org.architect.multitenantappointmentsystem.controller;
 // =====================================================================
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.architect.multitenantappointmentsystem.dto.ResponseDto;
 import org.architect.multitenantappointmentsystem.dto.request.CreateAppointmentRequest;
 import org.architect.multitenantappointmentsystem.dto.response.AppointmentResponse;
@@ -75,16 +74,16 @@ class AppointmentControllerTest {
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 
-    // ── ObjectMapper: Java obyektini JSON ga, JSON ni Java ga aylantiradi
+    // ── @Autowired ObjectMapper: Spring Boot ning o'z ObjectMapper i
+    //    LocalDate, LocalTime, LocalDateTime uchun allaqachon to'g'ri sozlangan
+    @Autowired
     private ObjectMapper objectMapper;
+
     private UUID tenantId;
     private UUID appointmentId;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // LocalDate/LocalTime uchun
-
         tenantId = UUID.randomUUID();
         appointmentId = UUID.randomUUID();
     }
