@@ -1,0 +1,21 @@
+# Build va cache
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Test va hujjatlar (Docker build da kerak emas)
+*.md
+src/test/
+
+# Boshqa
+.DS_Store
+*.log
