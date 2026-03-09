@@ -3,18 +3,42 @@
     --primary-light: #eff6ff;
     --text-main: #1e293b;
     --text-muted: #64748b;
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
+    --bg-main: #c0c4ca;
+    --bg-card: #c0c4ca;
     --border: #e2e8f0;
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --bg-hover: #e8ecf1;
+    --bg-muted: #b5bac2;
 
     --danger: #dc2626;
     --success: #16a34a;
     --warning: #d97706;
 }
 
+/* Dark mode */
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-light: #1e3a5f;
+    --text-main: #e4e6eb;
+    --text-muted: #9ca3af;
+    --bg-main: #0f1115;
+    --bg-card: #1a1d23;
+    --border: #374151;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --bg-hover: #252830;
+    --bg-muted: #374151;
+}
+
+[data-theme="dark"] .input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { transition: background-color 0.3s ease; }
+body { transition: background-color 0.3s ease, color 0.3s ease; }
 
 body {
     font-family: 'Inter', sans-serif;
@@ -237,7 +261,7 @@ main { padding-top: 2.5rem; padding-bottom: 5rem; }
     justify-content: center;
 }
 
-.slot-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--bg-hover, #f5f5ff); }
+.slot-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--bg-hover); }
 
 .slot-btn.selected {
     background-color: var(--primary);
@@ -247,7 +271,7 @@ main { padding-top: 2.5rem; padding-bottom: 5rem; }
 }
 
 .slot-btn.slot-taken {
-    background: var(--bg-muted, #f3f4f6);
+    background: var(--bg-muted);
     border-color: var(--border);
     color: var(--text-muted);
     cursor: not-allowed;
@@ -272,7 +296,7 @@ main { padding-top: 2.5rem; padding-bottom: 5rem; }
     border: 1px dashed var(--border);
     border-radius: 0.75rem;
     color: var(--text-muted);
-    background: white;
+    background: var(--bg-card);
 }
 
 /* Toast */
@@ -287,7 +311,7 @@ main { padding-top: 2.5rem; padding-bottom: 5rem; }
 }
 
 .toast {
-    background: white;
+    background: var(--bg-card);
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     padding: 0.75rem 1rem;

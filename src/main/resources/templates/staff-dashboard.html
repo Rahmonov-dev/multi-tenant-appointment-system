@@ -106,7 +106,7 @@
 
     <!-- ===== Reject Modal ===== -->
     <div id="reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;padding:1rem;overflow-y:auto;">
-        <div style="background:var(--bg-card,#fff);border-radius:1rem;padding:1.5rem;max-width:420px;margin:3rem auto;position:relative;">
+        <div style="background:var(--bg-card,#c0c4ca);border-radius:1rem;padding:1.5rem;max-width:420px;margin:3rem auto;position:relative;">
             <button onclick="closeRejectModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted);">
                 <i data-lucide="x" style="width:20px;height:20px;"></i>
             </button>
@@ -151,7 +151,7 @@
         .m-tab-active { color: var(--primary) !important; border-bottom-color: var(--primary) !important; }
 
         .appt-row {
-            background: var(--bg-card, #fff);
+            background: var(--bg-card, #c0c4ca);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             padding: 1rem 1.25rem;
@@ -165,7 +165,7 @@
         .appt-row:hover { border-color: var(--primary); }
 
         .stat-card {
-            background: var(--bg-card, #fff);
+            background: var(--bg-card, #c0c4ca);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             padding: 1rem;
@@ -212,7 +212,7 @@
             gap: 0.75rem;
         }
         .sched-card {
-            background: var(--bg-card, #fff);
+            background: var(--bg-card, #c0c4ca);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             padding: 1rem;
@@ -518,7 +518,7 @@
                     const end   = avail ? (s.endTime   || '18:00').substring(0, 5) : '18:00';
                     const slotDur = s && s.slotDuration ? s.slotDuration : 30;
                     html += `
-                        <div style="display:grid;grid-template-columns:110px 1fr;align-items:center;gap:1rem;padding:0.75rem;border:1px solid var(--border);border-radius:0.5rem;background:var(--bg-card,#fff);" id="sched-row-${d}">
+                        <div style="display:grid;grid-template-columns:110px 1fr;align-items:center;gap:1rem;padding:0.75rem;border:1px solid var(--border);border-radius:0.5rem;background:var(--bg-card,#c0c4ca);" id="sched-row-${d}">
                             <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;font-weight:500;">
                                 <input type="checkbox" id="sched-avail-${d}" ${avail ? 'checked' : ''} onchange="toggleSchedRow(${d})"
                                     style="width:16px;height:16px;accent-color:var(--primary);">

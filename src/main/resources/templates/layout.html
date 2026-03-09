@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" id="app-html">
 
 <head>
     <meta charset="UTF-8">
@@ -18,9 +18,16 @@
                 <span>Appointment System</span>
             </a>
 
-            <div id="nav-auth" style="display: flex; gap: 1rem; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="theme-toggle" type="button" aria-label="Mavzuni almashtirish"
+                    style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">
+                    <i data-lucide="moon" id="theme-icon-moon" style="width:20px;height:20px;"></i>
+                    <i data-lucide="sun" id="theme-icon-sun" style="width:20px;height:20px;display:none;"></i>
+                </button>
+                <div id="nav-auth" style="display: flex; gap: 1rem; align-items: center;">
                 <div class="loading" style="padding: 0; width: 20px; height: 20px;">
                     <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                </div>
                 </div>
             </div>
         </div>
@@ -199,7 +206,40 @@
             return true;
         }
 
+        // ---------- Theme (Light / Dark) ----------
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            const html = document.documentElement;
+            const moon = document.getElementById('theme-icon-moon');
+            const sun = document.getElementById('theme-icon-sun');
+            if (theme === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+                if (moon) moon.style.display = 'none';
+                if (sun) sun.style.display = 'block';
+            } else {
+                html.removeAttribute('data-theme');
+                if (moon) moon.style.display = 'block';
+                if (sun) sun.style.display = 'none';
+            }
+        }
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            initTheme();
+            lucide.createIcons();
+        }
+        initTheme(); // Apply saved theme immediately to avoid flash
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
         document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             checkAuth();
             lucide.createIcons();
         });
